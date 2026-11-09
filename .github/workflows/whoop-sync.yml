@@ -34,3 +34,4 @@ jobs:
           WHOOP_CLIENT_ID: ${{ secrets.WHOOP_CLIENT_ID }}
           WHOOP_CLIENT_SECRET: ${{ secrets.WHOOP_CLIENT_SECRET }}
           WHOOP_MIN_MINUTES: ${{ vars.WHOOP_MIN_MINUTES }}
+          WHOOP_EXCLUDE_SPORTS: ${{ vars.WHOOP_EXCLUDE_SPORTS }}

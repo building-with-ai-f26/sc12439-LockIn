@@ -1,6 +1,6 @@
 # Whoop sync: workouts logged for you at 11:59 PM Eastern
 
-Every night a GitHub Action pulls each connected person's Whoop workouts from the last 3 days and logs any new one of 20+ minutes into the game with `source = 'whoop'`. The game rules are unchanged: a Whoop row counts exactly like a tapped "I worked out today".
+Every night a GitHub Action pulls each connected person's Whoop workouts from the last 3 days and logs any new one of 30+ minutes, walking excluded, into the game with `source = 'whoop'`. The game rules are unchanged: a Whoop row counts exactly like a tapped "I worked out today".
 
 ## One-time setup (owner, about 10 minutes)
 
@@ -11,7 +11,7 @@ Every night a GitHub Action pulls each connected person's Whoop workouts from th
    - Copy the Client ID and Client Secret.
    - Development apps can connect up to 10 Whoop members. Plenty for a friend group.
 3. **Local .env.** `cp .env.example .env`, fill in `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API Keys → service_role), `WHOOP_CLIENT_ID`, `WHOOP_CLIENT_SECRET`. `.env` is git-ignored. Never paste the service role key anywhere under `docs/`.
-4. **GitHub secrets.** Repo → Settings → Secrets and variables → Actions → New repository secret, four times: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `WHOOP_CLIENT_ID`, `WHOOP_CLIENT_SECRET`. Optional variable (not secret) `WHOOP_MIN_MINUTES` to change the 20-minute threshold.
+4. **GitHub secrets.** Repo → Settings → Secrets and variables → Actions → New repository secret, four times: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `WHOOP_CLIENT_ID`, `WHOOP_CLIENT_SECRET`. Optional variables (not secrets): `WHOOP_MIN_MINUTES` (default 30) and `WHOOP_EXCLUDE_SPORTS` (default `walking`, comma separated).
 
 ## Connect a person (1 minute each)
 
@@ -39,7 +39,7 @@ node scripts/whoop-sync.mjs --force
 
 - Actions tab shows each night's log: how many Whoop workouts were found, how many were eligible, how many were new.
 - In Supabase, `select user_id, last_synced_at, last_error from whoop_connections;`
-- A workout under 20 minutes is skipped on purpose. Change `WHOOP_MIN_MINUTES` if your group disagrees.
+- A workout under 30 minutes, or any walk, is skipped on purpose. Change `WHOOP_MIN_MINUTES` or `WHOOP_EXCLUDE_SPORTS` if your group disagrees.
 
 ## Disconnect
 

@@ -81,3 +81,15 @@ test(".env parser handles quotes, comments and export", () => {
   const env = W.parseDotenv('# comment\nWHOOP_CLIENT_ID=abc # trailing\nexport SECRET="s p a c e"\nEMPTY=\nbad line\n');
   assert.deepEqual(env, { WHOOP_CLIENT_ID: "abc", SECRET: "s p a c e", EMPTY: "" });
 });
+
+test("defaults: 30 minutes minimum and walking excluded; both configurable", () => {
+  const run25 = rec({ id: "r25", end: "2026-11-09T22:25:00.000Z" });            // 25 min run → dropped
+  const walk60 = rec({ id: "w60", sport_name: "Walking", end: "2026-11-09T23:00:00.000Z" }); // 60 min walk → dropped
+  const lift = rec({ id: "l", sport_name: "weightlifting" });                   // 45 min → kept
+  assert.deepEqual(W.toWorkoutRows([run25, walk60, lift], ["p1"]).map((r) => r.external_id), ["l"]);
+  assert.equal(W.toWorkoutRows([run25], ["p1"], { minMinutes: 20 }).length, 1);
+  assert.equal(W.toWorkoutRows([walk60], ["p1"], { excludeSports: [] }).length, 1);
+  assert.equal(W.toWorkoutRows([walk60, lift], ["p1"], { excludeSports: "walking, Weightlifting" }).length, 0);
+  assert.deepEqual(W.parseSportList(" Walking ,hiking,,"), ["walking", "hiking"]);
+  assert.equal(W.isExcludedSport({ sport_name: "FUNCTIONAL_FITNESS" }, ["functional fitness"]), true);
+});

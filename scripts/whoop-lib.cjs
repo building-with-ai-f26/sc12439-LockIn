@@ -15,7 +15,7 @@ const WHOOP = {
   pageSize: 25
 };
 
-const DEFAULTS = { minMinutes: 20, windowDays: 3, challengeDays: 90 };
+const DEFAULTS = { minMinutes: 30, excludeSports: ["walking"], windowDays: 3, challengeDays: 90 };
 
 // True when `date` falls in the 11 PM hour in New York, EST or EDT.
 // The GitHub cron fires at both 03:59 and 04:59 UTC; whichever is 23:59 local wins.
@@ -47,16 +47,28 @@ function noteFor(record) {
   return humanSport(record.sport_name) + " · " + mins + " min" + strain;
 }
 
+// "walking, Hiking" → ["walking", "hiking"]
+function parseSportList(v) {
+  if (Array.isArray(v)) return v.map((x) => String(x).trim().toLowerCase()).filter(Boolean);
+  return String(v || "").split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
+}
+function isExcludedSport(record, excluded) {
+  const name = String(record.sport_name || "").toLowerCase().replace(/[_-]+/g, " ");
+  return excluded.some((x) => x && name === x.replace(/[_-]+/g, " "));
+}
+
 /*
-  toWorkoutRows(records, playerIds, { minMinutes })
+  toWorkoutRows(records, playerIds, { minMinutes, excludeSports })
   Whoop workout records → rows for the workouts table, one per player row the
-  person has (they may be in several groups). Short activities are dropped.
+  person has (they may be in several groups). Short activities and excluded
+  sports (walking by default) are dropped.
 */
 function toWorkoutRows(records, playerIds, opts) {
   const minMinutes = (opts && opts.minMinutes) != null ? opts.minMinutes : DEFAULTS.minMinutes;
+  const excluded = parseSportList((opts && opts.excludeSports) != null ? opts.excludeSports : DEFAULTS.excludeSports);
   const rows = [];
   (records || []).forEach((r) => {
-    if (!r || !r.id || durationMinutes(r) < minMinutes) return;
+    if (!r || !r.id || durationMinutes(r) < minMinutes || isExcludedSport(r, excluded)) return;
     playerIds.forEach((pid) => {
       rows.push({ player_id: pid, happened_at: r.start, source: "whoop", external_id: String(r.id), note: noteFor(r) });
     });
@@ -118,5 +130,5 @@ function parseDotenv(text) {
 module.exports = {
   WHOOP, DEFAULTS,
   isElevenPmEastern, syncWindow, durationMinutes, humanSport, noteFor,
-  toWorkoutRows, activePlayerIds, tokenExpired, authUrl, parseCallback, parseDotenv
+  toWorkoutRows, activePlayerIds, tokenExpired, authUrl, parseCallback, parseDotenv, parseSportList, isExcludedSport
 };

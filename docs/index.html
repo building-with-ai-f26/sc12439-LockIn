@@ -198,7 +198,7 @@
           <li>Hit weeks score the moment you hit the goal, not at week's end, for faster feedback.</li>
           <li>Replaced the race board with a Pokémon-style loop after playing the first version: LP as a health bar, evolution at 3 and 7 hit weeks in a row, devolve on a broken streak. One stat to protect reads better on a phone than 40 squares, and evolution gives streaks a visible payoff. Starting LP 50 and faint-reset 25 are first guesses to tune with real players.</li>
           <li>Replaced the pixelated-photo avatar with a hand-drawn sprite builder after seeing the reference style I actually wanted: flat colours, full body, 15×24 grid. A photo now only suggests colours. Still $0 and browser-only; an AI redraw remains a later experiment.</li>
-          <li>Whoop sync shipped as a nightly GitHub Action at 11:59 PM Eastern: pulls the last 3 days of workouts over 20 minutes and logs them with <code>source = 'whoop'</code>, deduped by Whoop id. Tokens live in a service-role-only table, never in the repo. Setup in <a href="WHOOP.md">docs/WHOOP.md</a>.</li>
+          <li>Whoop sync shipped as a nightly GitHub Action at 11:59 PM Eastern: pulls the last 3 days of workouts of 30+ minutes (walks excluded) and logs them with <code>source = 'whoop'</code>, deduped by Whoop id. Tokens live in a service-role-only table, never in the repo. Setup in <a href="WHOOP.md">docs/WHOOP.md</a>.</li>
           <li>PostHog still not installed. Next.</li>
         </ul>
       </td></tr>

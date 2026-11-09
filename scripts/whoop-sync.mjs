@@ -7,7 +7,7 @@
     node scripts/whoop-sync.mjs --force        (skips the 11 PM guard)
 
   Env (see .env.example): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
-  WHOOP_CLIENT_ID, WHOOP_CLIENT_SECRET, optional WHOOP_MIN_MINUTES, WHOOP_WINDOW_DAYS.
+  WHOOP_CLIENT_ID, WHOOP_CLIENT_SECRET, optional WHOOP_MIN_MINUTES (30), WHOOP_EXCLUDE_SPORTS (walking), WHOOP_WINDOW_DAYS (3).
   Never run this with the anon key: whoop_connections is service-role only.
 */
 import fs from "node:fs";
@@ -28,6 +28,7 @@ const SERVICE_KEY = need("SUPABASE_SERVICE_ROLE_KEY");
 const CLIENT_ID = need("WHOOP_CLIENT_ID");
 const CLIENT_SECRET = need("WHOOP_CLIENT_SECRET");
 const MIN_MINUTES = Number(process.env.WHOOP_MIN_MINUTES || W.DEFAULTS.minMinutes);
+const EXCLUDE = process.env.WHOOP_EXCLUDE_SPORTS != null ? W.parseSportList(process.env.WHOOP_EXCLUDE_SPORTS) : W.DEFAULTS.excludeSports;
 const WINDOW_DAYS = Number(process.env.WHOOP_WINDOW_DAYS || W.DEFAULTS.windowDays);
 const FORCE = process.argv.includes("--force") || process.env.FORCE === "1";
 
@@ -79,7 +80,7 @@ async function fetchWorkouts(accessToken, window) {
 const connections = await db("whoop_connections?select=*");
 if (!connections.length) { console.log("No Whoop connections yet. Run: node scripts/whoop-connect.mjs"); process.exit(0); }
 const window = W.syncWindow(now, WINDOW_DAYS);
-console.log("Syncing " + connections.length + " connection(s), window " + window.start + " → " + window.end + ", min " + MIN_MINUTES + " min");
+console.log("Syncing " + connections.length + " connection(s), window " + window.start + " → " + window.end + ", min " + MIN_MINUTES + " min, excluding " + (EXCLUDE.length ? EXCLUDE.join(", ") : "nothing"));
 
 let failures = 0;
 for (const conn of connections) {
@@ -99,7 +100,7 @@ for (const conn of connections) {
     }
 
     const records = await fetchWorkouts(fresh.access_token, window);
-    const candidates = W.toWorkoutRows(records, playerIds, { minMinutes: MIN_MINUTES });
+    const candidates = W.toWorkoutRows(records, playerIds, { minMinutes: MIN_MINUTES, excludeSports: EXCLUDE });
     // Skip anything already logged. (The unique index on (player_id, external_id) is
     // partial, which PostgREST's on_conflict cannot target, so we filter here; the
     // index still guards against a race.)
