@@ -50,6 +50,8 @@
   </div>
   <footer>Build 2 · <a href="prototype.html">old photo pixelator</a> · <a href="https://github.com/building-with-ai-f26/sc12439-LockIn">source</a></footer>
 </div>
+<script src="posthog-config.js"></script>
+<script src="analytics.js"></script>
 <script src="sprite.js"></script>
 <script src="character-ui.js"></script>
 <script>
@@ -62,6 +64,7 @@
     var n = document.getElementById("name").value.trim();
     a.download = (n ? n.replace(/[^a-z0-9]+/gi, "-").toLowerCase() : "8bit-me") + ".png";
   }
+  document.getElementById("download").addEventListener("click", function () { Analytics.track("character_downloaded", { options: api.getOptions() }); });
   document.getElementById("name").addEventListener("input", refreshDownload);
   document.querySelectorAll(".btn.stage").forEach(function (b) {
     b.addEventListener("click", function () {

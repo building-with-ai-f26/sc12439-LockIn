@@ -52,6 +52,7 @@
       session = r.data.session;
     }
     uid = session.user.id;
+    Analytics.identify(uid);
 
     var joinMatch = location.hash.match(/^#\/join\/([A-Z0-9]+)/i);
     var pr = await sb.from("profiles").select("*").eq("user_id", uid).maybeSingle();
@@ -94,7 +95,9 @@
     var row = { user_id: uid, name: name, avatar_data_url: builder.getDataURL(1), avatar_options: builder.getOptions() };
     var r = await sb.from("profiles").upsert(row).select().single();
     if (r.error) { fail("charMsg", r.error); return; }
+    var isNew = !profile;
     profile = r.data;
+    Analytics.track(isNew ? "character_created" : "character_edited", { hair: row.avatar_options.hair, top: row.avatar_options.top, glasses: !!row.avatar_options.glasses });
     // Keep my player rows in sync so the leaderboard shows the new look.
     await sb.from("players").update({ name: name, avatar_data_url: row.avatar_data_url, avatar_options: row.avatar_options }).eq("user_id", uid);
     if (me) { me.name = name; me.avatar_data_url = row.avatar_data_url; me.avatar_options = row.avatar_options; }
@@ -117,6 +120,7 @@
     var r = await sb.from("challenges").insert({ name: name, starts_on: $("cStart").value || todayISO(), invite_code: inviteCode(), created_by: uid }).select().single();
     if (r.error) { fail("createMsg", r.error); return; }
     challenge = r.data;
+    Analytics.track("group_created", { starts_on: challenge.starts_on });
     openIntake();
   }
   async function join() {
@@ -130,6 +134,7 @@
     // Already in this one? Go straight to play.
     var existing = await sb.from("players").select("*").eq("user_id", uid).eq("challenge_id", challenge.id).maybeSingle();
     if (existing.data) { me = existing.data; await refresh(); show("play"); return; }
+    Analytics.track("group_joined", { via_link: !!location.hash });
     openIntake();
   }
 
@@ -155,6 +160,7 @@
     }).select().single();
     if (r.error) { fail("lockMsg", r.error); return; }
     me = r.data;
+    Analytics.track("goal_locked", { goal_per_week: n });
     await refresh();
     show("play");
   }
@@ -240,9 +246,11 @@
     if (lastSummary) {
       var b = $("banner");
       if (s.stage > lastSummary.stage) {
+        Analytics.track("evolved", { stage: s.stage, streak: s.streak });
         b.textContent = "✦ EVOLVED! " + me.name.toUpperCase() + " IS NOW " + s.stageName + " ✦";
         b.className = "banner evolve show";
       } else if (s.lp > lastSummary.lp) {
+        Analytics.track("week_hit", { lp: s.lp, streak: s.streak, week: s.currentWeek });
         b.textContent = "WEEK HIT! +" + (s.lp - lastSummary.lp) + " LP → " + s.lp + (s.lp >= GameRules.RULES.lpMax ? " (MAX)" : "") + " · STREAK " + s.streak;
         b.className = "banner show";
       }
@@ -256,6 +264,7 @@
     var r = await sb.from("workouts").insert({ player_id: me.id, happened_at: whenISO, source: "manual" });
     if (r.error) { fail("logMsg", r.error); return; }
     msg("logMsg", "Logged. Keep going.", "ok");
+    Analytics.track("workout_logged", { source: "manual", backdated: whenISO.slice(0, 10) !== todayISO() });
     await refresh();
   }
   async function undoLast() {
@@ -265,6 +274,7 @@
     var r = await sb.from("workouts").delete().eq("id", last.id);
     if (r.error) { fail("logMsg", r.error); return; }
     msg("logMsg", "Removed your last manual workout.", "ok");
+    Analytics.track("workout_undone");
     await refresh();
   }
 
@@ -286,11 +296,13 @@
   $("refreshBtn").addEventListener("click", refresh);
   $("shareBtn").addEventListener("click", function () {
     var link = location.origin + location.pathname + "#/join/" + challenge.invite_code;
+    Analytics.track("invite_copied");
     navigator.clipboard.writeText(link).then(function () { msg("logMsg", "Invite link copied: " + link, "ok"); }, function () { prompt("Copy this invite link:", link); });
   });
   $("signout").addEventListener("click", async function (e) {
     e.preventDefault();
     if (!sb || !confirm("Sign out of this device identity? You will not be able to get this character or player back.")) return;
+    Analytics.track("identity_reset"); Analytics.reset();
     await sb.auth.signOut(); location.hash = ""; location.reload();
   });
 
