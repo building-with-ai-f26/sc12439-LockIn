@@ -187,10 +187,20 @@
         <ul>
           <li>Core workflow end to end at <a href="game.html">game.html</a>: build your 8-bit character, create or join a group by invite code, lock in a fitness goal, log workouts, gain LP, evolve, and see the leaderboard.</li>
           <li>Shared backend on Supabase free tier. Each phone signs in anonymously; Row Level Security means you can only write your own workouts. Verified with a two-identity smoke test against the live project.</li>
-          <li>Game rules are pure functions covered by 16 Node tests; 34 tests total pass.</li>
+          <li>Game rules, sprites, pixelation and the Whoop mapping are pure functions; 45 Node tests pass. Every screen was also screenshotted in headless Chrome against an in-memory fake backend before shipping.</li>
+          <li>Whoop is connected for me and the first real sync ran from GitHub Actions. PostHog is receiving pageviews and the named events.</li>
         </ul>
       </td></tr>
-      <tr><td>What I learned</td><td class="todo">TODO</td></tr>
+      <tr><td>What I learned</td><td>
+        <ul>
+          <li>Verify, don't assume. Twice a migration "ran" but the live API still returned 404, once because the SQL went into chat instead of the editor. A curl against the REST endpoint takes two seconds and settles it.</li>
+          <li>The Supabase anon key being public is fine; Row Level Security is the real gate. The two-identity smoke test that tries to write someone else's data and gets 403 is the test that matters.</li>
+          <li>Keeping the game math as pure functions paid off: swapping the race board for LP and evolution was a one-hour change with tests, and the UI followed.</li>
+          <li>Third-party APIs have paperwork. Whoop needed a privacy policy URL before it would create the app, rotates refresh tokens on every use, and caps development apps at 10 members. Postgres partial unique indexes can't be targeted by PostgREST's on-conflict, so the sync pre-filters instead.</li>
+          <li>GitHub cron is UTC only. "11:59 PM Eastern all year" means two cron lines plus a timezone guard in the script.</li>
+          <li>A 20-minute minimum made two walks count as workouts on day one. Rules need a real data point before they feel right; now 30 minutes and no walking.</li>
+        </ul>
+      </td></tr>
       <tr><td>What broke or changed</td><td>
         <ul>
           <li>Chose Supabase over localStorage so friends share one board from GitHub Pages. Tradeoff: identity is per device, so switching phones means a new player.</li>
@@ -202,8 +212,8 @@
           <li>PostHog installed on every page: pageviews and autocapture, plus named events for the moments that matter (character created, group created or joined, goal locked, workout logged or undone, week hit, evolved, invite copied). Identified by the anonymous Supabase id only; session recording off. Config in <code>docs/posthog-config.js</code>.</li>
         </ul>
       </td></tr>
-      <tr><td>Costs</td><td class="todo">TODO</td></tr>
-      <tr><td>Hours</td><td class="todo">TODO</td></tr>
+      <tr><td>Costs</td><td>$0 of new spend. Supabase free tier, GitHub Pages and Actions on a public repo, PostHog free tier, and a Whoop developer app, which is free with the Whoop membership I already pay for. Coding agent on an existing plan.</td></tr>
+      <tr><td>Hours</td><td>About 5 hours across two sittings on November 9, going by commit timestamps: the game loop and character builder overnight, then the Pokémon redesign, Whoop and PostHog the next morning.</td></tr>
     </table>
   </div>
 
