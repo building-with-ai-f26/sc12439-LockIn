@@ -1,45 +1,75 @@
-# [Project Name]
+# Lock-In Party
 
-> **One-line pitch:** [Who is this for, and what job does it do for them?]
+> **One-line pitch:** An 8-bit party game for a friend group that locks in 90-day fitness goals. Log your workouts (or let Whoop do it), keep your Lock-in Power high, and evolve your character Pokémon-style by holding a streak.
 
-- **Builder:** [Your Name] (`@github-handle`)
-- **Pod:** [Pod Name / Number]
-- **Product Page & Living PRD:** [Add your GitHub Pages URL]
-- **App:** runs locally through Week 4; add a cloud URL in Build 5.
+- **Builder:** Sheshu Chandrasekar (`@schandr47`)
+- **Pod:** TODO
+- **Product Page & Living PRD:** https://building-with-ai-f26.github.io/sc12439-LockIn/
+- **Play:** https://building-with-ai-f26.github.io/sc12439-LockIn/game.html
+- **Character builder:** https://building-with-ai-f26.github.io/sc12439-LockIn/character.html
 
-## Start here: Build 1
+## How the game works
 
-**Due Monday, November 9 at noon, New York time.** No class November 3; keep building that week.
+1. **Build your character.** A full-body 15×24 pixel sprite: hair, face, glasses, top, bottoms, shoes, colours. Upload a photo and it suggests your skin and hair tone.
+2. **Create or join a group** with an invite code or link.
+3. **Lock in your goal**, 1 to 7 workouts per week for 90 days. It cannot be changed afterwards.
+4. **Log workouts.** Tap "I worked out today", or connect a Whoop and the nightly sync logs anything of 30+ minutes (walks excluded) for you.
+5. **Keep your LP up.** Everyone starts at 50 Lock-in Power. Hit the week, +10. Miss it, −15. Three hit weeks in a row evolves you to RISING, seven to LOCKED IN. Break the streak or hit 0 LP and you devolve.
+6. **Highest LP on day 90 wins.** The leaderboard shows everyone's stage, LP and streak.
 
-1. Join the [class organization](https://github.com/building-with-ai-f26), then use this template to create a **public** repo named `<netid>-<project-slug>`. Ask Christian or Hew if the organization is missing from the owner list.
-2. Set up Git and one coding agent during the week of October 27. Follow the [Icerynk setup guide](https://www.icerynk.com/c/fa26-tech-gb-2160-dm2-f2/content/pre-class-setup-github-openrouter-your-coding-agent).
-3. Publish [`docs/index.html`](./docs/index.html): **Settings → Pages → Deploy from a branch → main → /docs → Save**. When deployment finishes, open `https://building-with-ai-f26.github.io/<your-repo-name>/`.
-4. Fill in PRD v1: a reachable user, their painful before/after workflow, one core workflow, and three non-goals.
-5. Build a rough local prototype. Add a screenshot or GIF and an honest Build 1 log to the Product Page, including progress, learning, problems, costs, and hours.
-6. Push meaningful commits on **at least two separate days each week outside class**, including the November 3 break.
-7. Submit your **Product Page URL and repository URL in Icerynk**. Come ready to demo the prototype in two minutes on November 10.
-
-Create your PostHog account in Week 1. Install it on the Product Page and local app in **Build 2**, then verify events. The Product Page is public from Build 1; the app can stay local through Week 4.
+All game math is derived from workout rows; nothing is stored as state. See `docs/game-rules.js`.
 
 ## Repository map
 
 | File / folder | Purpose |
 | --- | --- |
-| [`docs/index.html`](./docs/index.html) | Required public pitch, living PRD, and weekly build log. Update with actual work and evidence. |
-| [`Intent.md`](./Intent.md), [`Plan.md`](./Plan.md), [`journal/`](./journal/) | Optional drafting aids. No duplicate submission is required. |
-| [`AGENTS.md`](./AGENTS.md) | Local run commands, project context, and agent rules. Build 2 onward. |
-| [`tests/`](./tests/) | Verification guidance. Build 4 offers Track A domain evals **or** Track B user replays. |
-| [`SPONSOR_MEMO.md`](./SPONSOR_MEMO.md) | One-page recommendation backed by actual usage, full costs, and risks. Due December 14 at noon. |
+| [`docs/`](./docs/) | The whole site, served by GitHub Pages: product page + PRD (`index.html`), game (`game.html`, `game.js`), rules (`game-rules.js`), sprite system (`sprite.js`, `character-ui.js`), builder (`character.html`), Whoop callback, privacy page, analytics. |
+| [`supabase/`](./supabase/) | Database schema and migrations (`schema.sql`, `002-profiles.sql`, `003-whoop.sql`) and setup steps. |
+| [`scripts/`](./scripts/) | Whoop nightly sync, one-time Whoop connect, live smoke test. |
+| [`.github/workflows/whoop-sync.yml`](./.github/workflows/whoop-sync.yml) | Cron that runs the Whoop sync at 11:59 PM Eastern. |
+| [`tests/`](./tests/) | Node tests for rules, sprites, pixelation and Whoop mapping. |
+| [`docs/WHOOP.md`](./docs/WHOOP.md) | Whoop setup guide. |
+| [`AGENTS.md`](./AGENTS.md) | Run commands, stack, and rules for coding agents. |
+| [`Intent.md`](./Intent.md), [`Plan.md`](./Plan.md), [`journal/`](./journal/) | Course drafting aids. |
+| [`SPONSOR_MEMO.md`](./SPONSOR_MEMO.md) | One-page recommendation, due December 14. |
 
-[Icerynk](https://www.icerynk.com/c/fa26-tech-gb-2160-dm2-f2/content) holds the assignment instructions and submissions.
+Course instructions and submissions live on [Icerynk](https://www.icerynk.com/c/fa26-tech-gb-2160-dm2-f2/content).
+
+## Stack
+
+Static HTML/CSS/JS, no build step. Supabase (Postgres, anonymous auth, Row Level Security) as the shared backend, called from the browser with supabase-js. GitHub Pages for hosting, GitHub Actions for the nightly Whoop sync, PostHog for analytics. Node 22+ for tests and scripts. Cost so far: $0, all free tiers.
 
 ## Local setup
 
-Clone **your own repository** and ask your coding agent to document the exact install and run commands here and in `AGENTS.md`.
-
 ```bash
-git clone https://github.com/building-with-ai-f26/<your-repo-name>.git
-cd <your-repo-name>
+git clone https://github.com/building-with-ai-f26/sc12439-LockIn.git
+cd sc12439-LockIn
+python3 -m http.server 8000 --directory docs
+# open http://localhost:8000/game.html
 ```
 
-If your app needs API keys, use a local environment file such as `.env`. Keep private keys out of source code, browser code, screenshots, and commits. The template ignores `.env`; `.env.example` contains placeholders only.
+The browser app needs no secrets: `docs/supabase-config.js` holds the public Supabase URL and anon key, `docs/posthog-config.js` the public PostHog key. To point at your own Supabase project, follow [`supabase/README.md`](./supabase/README.md).
+
+Tests:
+
+```bash
+node --test "tests/*.test.cjs"
+```
+
+Whoop sync (optional, needs a Whoop developer app and the Supabase service role key in a local `.env`, see [`docs/WHOOP.md`](./docs/WHOOP.md)):
+
+```bash
+cp .env.example .env            # fill in the blanks
+node scripts/whoop-connect.mjs  # one-time login per person
+node scripts/whoop-sync.mjs --force
+```
+
+Keep `SUPABASE_SERVICE_ROLE_KEY` and `WHOOP_CLIENT_SECRET` out of `docs/`, screenshots and commits. `.env` is git-ignored; `.env.example` has placeholders only.
+
+## Build status
+
+| Build | Status |
+| --- | --- |
+| 1 · Intent & prototype | Shipped. Product page, PRD v1, 8-Bit Me photo pixelator. |
+| 2 · Smallest local version | Shipped. Full game loop on Supabase, character builder, Pokémon-style LP and evolution, Whoop sync, PostHog. |
+| 3 onward | See the build log on the product page. |
