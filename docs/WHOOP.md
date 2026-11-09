@@ -1,10 +1,10 @@
 # Whoop sync: workouts logged for you at 11:59 PM Eastern
 
-Every night a GitHub Action pulls each connected person's Whoop workouts from the last 3 days and logs any new one of 30+ minutes, walking excluded, into the game with `source = 'whoop'`. The game rules are unchanged: a Whoop row counts exactly like a tapped "I worked out today".
+Every night a GitHub Action pulls each connected person's Whoop workouts from the last 3 days and logs any new one of 30+ minutes, walking excluded, into the game as check-ins on that person's workouts goal, with `source = 'whoop'`. The game rules are unchanged: a Whoop row counts exactly like a tapped "I worked out today". Whoop only knows about workouts, so step, reading and dry-day goals are still tapped in by hand, and a player without a workouts goal is skipped.
 
 ## One-time setup (owner, about 10 minutes)
 
-1. **Database.** Supabase → SQL Editor → paste `supabase/003-whoop.sql` → Run.
+1. **Database.** Supabase → SQL Editor → paste `supabase/003-whoop.sql` → Run (and `004-goals.sql` if you have not yet).
 2. **Whoop app.** Sign in at https://developer.whoop.com with your Whoop account → Create app.
    - Name: Lock-In Party. Scopes: `offline`, `read:workout`, `read:profile`.
    - Redirect URL: `https://building-with-ai-f26.github.io/sc12439-LockIn/whoop-callback.html`
@@ -32,7 +32,7 @@ node scripts/whoop-sync.mjs --force
 ## What runs when
 
 - `.github/workflows/whoop-sync.yml` fires at 03:59 and 04:59 UTC. The script checks New York time and only syncs during the 11 PM hour, so it is 11:59 PM EST and EDT alike. GitHub may delay a scheduled run by some minutes; the 3-day window makes that harmless.
-- Each run refreshes the Whoop tokens (they rotate), saves the new pair, pulls workouts, inserts with `on conflict ignore` on `(player_id, external_id)` so nothing double counts, and records `last_synced_at` or `last_error` on the connection.
+- Each run refreshes the Whoop tokens (they rotate), saves the new pair, pulls workouts, looks up each player's workouts goal, skips anything already in `checkins` for that `(player_id, external_id)` so nothing double counts, and records `last_synced_at` or `last_error` on the connection.
 - Run it by hand any time: Actions tab → Whoop nightly sync → Run workflow.
 
 ## Checking on it

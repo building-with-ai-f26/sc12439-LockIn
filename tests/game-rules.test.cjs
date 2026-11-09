@@ -130,10 +130,10 @@ test("fainting right after a hit week does not devolve below stage 1", () => {
   assert.equal(s.stage, 1);
 });
 
-test("workouts before the start or after day 90 are ignored", () => {
+test("check-ins before the start or after day 90 are ignored", () => {
   const s = G.summarize({ startsOn: START, perWeek: 1, today: "2026-11-10",
     workouts: [w("2026-11-01"), w("2027-03-01")] });
-  assert.equal(s.totalWorkouts, 0);
+  assert.equal(s.totalCheckins, 0);
   assert.equal(s.lp, 50);
 });
 
@@ -147,12 +147,88 @@ test("a perfect 90 days: over, 13 hit weeks, full LP, final stage", () => {
   assert.equal(s.streak, 13);
 });
 
-test("leaderboard ranks by LP, then stage, then streak, then workouts", () => {
+test("leaderboard ranks by LP, then stage, then streak, then check-ins", () => {
   const rows = [
-    { name: "a", lp: 60, stage: 1, streak: 1, totalWorkouts: 3 },
-    { name: "b", lp: 80, stage: 2, streak: 3, totalWorkouts: 9 },
-    { name: "c", lp: 60, stage: 2, streak: 0, totalWorkouts: 5 },
-    { name: "d", lp: 60, stage: 1, streak: 1, totalWorkouts: 4 }
+    { name: "a", lp: 60, stage: 1, streak: 1, totalCheckins: 3 },
+    { name: "b", lp: 80, stage: 2, streak: 3, totalCheckins: 9 },
+    { name: "c", lp: 60, stage: 2, streak: 0, totalCheckins: 5 },
+    { name: "d", lp: 60, stage: 1, streak: 1, totalCheckins: 4 }
   ];
   assert.deepEqual(rows.slice().sort(G.compare).map((r) => r.name), ["b", "c", "d", "a"]);
+});
+
+// ---------- several goals ----------
+const GOALS = [
+  { id: "gf", type: "fitness", per_week: 2 },
+  { id: "gd", type: "dry", per_week: 7 }
+];
+const ci = (goal, day) => ({ goal_id: goal, happened_at: day });
+const dryWeek = (i) => [0, 1, 2, 3, 4, 5, 6].map((d) => ci("gd", G.addDays(START, i * 7 + d)));
+
+test("goal text reads naturally for every type", () => {
+  assert.equal(G.goalText({ type: "fitness", per_week: 3 }), "Work out 3× per week");
+  assert.equal(G.goalText({ type: "steps", per_week: 5 }), "10,000 steps 5 days a week");
+  assert.equal(G.goalText({ type: "steps", per_week: 7, settings: { steps: 8000 } }), "8,000 steps every day");
+  assert.equal(G.goalText({ type: "reading", per_week: 1 }), "Read 20 min 1 day a week");
+  assert.equal(G.goalText({ type: "dry", per_week: 7 }), "No drinking all week");
+  assert.equal(G.goalText({ type: "dry", per_week: 5 }), "5 dry days a week");
+  assert.equal(G.goalShort({ type: "reading", per_week: 3 }), "3 reading days");
+  assert.deepEqual(G.GOAL_ORDER, ["fitness", "steps", "reading", "dry"]);
+});
+
+test("a week is hit only when every goal is met", () => {
+  const workouts = [ci("gf", "2026-11-09"), ci("gf", "2026-11-10")];
+  const onlyWorkouts = G.summarize({ startsOn: START, goals: GOALS, checkins: workouts, today: startOfWeek(1) });
+  assert.equal(onlyWorkouts.weeks[0].hit, false);
+  assert.deepEqual(onlyWorkouts.weeks[0].counts, [2, 0]);
+  assert.equal(onlyWorkouts.lp, 35);
+  const both = G.summarize({ startsOn: START, goals: GOALS, checkins: workouts.concat(dryWeek(0)), today: startOfWeek(1) });
+  assert.equal(both.weeks[0].hit, true);
+  assert.equal(both.lp, 60);
+  assert.equal(both.totalCheckins, 9);
+});
+
+test("once-per-day goals count a day only once; workouts can stack", () => {
+  const s = G.summarize({ startsOn: START, goals: GOALS, today: "2026-11-10", checkins: [
+    ci("gd", "2026-11-09T08:00:00"), ci("gd", "2026-11-09T22:00:00"),   // same day twice
+    ci("gf", "2026-11-09T07:00:00"), ci("gf", "2026-11-09T18:00:00")    // two workouts, one day
+  ] });
+  const dry = s.goals.find((g) => g.type === "dry"), fit = s.goals.find((g) => g.type === "fitness");
+  assert.equal(dry.thisWeekCount, 1);
+  assert.equal(fit.thisWeekCount, 2);
+  assert.equal(fit.thisWeekHit, true);
+  assert.equal(dry.thisWeekRemaining, 6);
+  assert.equal(s.thisWeekRemaining, 6);
+  assert.equal(s.thisWeekHit, false);
+});
+
+test("per-goal summary carries labels, actions and whether today is logged", () => {
+  const s = G.summarize({ startsOn: START, goals: GOALS, today: "2026-11-10", checkins: [ci("gd", "2026-11-10T09:00:00")] });
+  const dry = s.goals[1];
+  assert.equal(dry.label, "NO DRINKING");
+  assert.equal(dry.action, "DRY DAY TODAY");
+  assert.equal(dry.oncePerDay, true);
+  assert.equal(dry.loggedToday, true);
+  assert.equal(s.goals[0].loggedToday, false);
+  assert.equal(s.goals[0].text, "Work out 2× per week");
+});
+
+test("check-ins without a goal_id belong to the fitness goal (rows from before 004)", () => {
+  const s = G.summarize({ startsOn: START, goals: [{ id: "gf", type: "fitness", per_week: 1 }], today: startOfWeek(1),
+    checkins: [{ happened_at: "2026-11-09" }] });
+  assert.equal(s.weeks[0].hit, true);
+  assert.equal(s.lp, 60);
+});
+
+test("the old { perWeek, workouts } input shape still works", () => {
+  const s = G.summarize({ startsOn: START, perWeek: 1, workouts: hitWeeks(0, 1, 2), today: startOfWeek(3) });
+  assert.equal(s.stage, 2);
+  assert.equal(s.goals.length, 1);
+  assert.equal(s.goals[0].type, "fitness");
+});
+
+test("a player with no goals never scores a hit", () => {
+  const s = G.summarize({ startsOn: START, goals: [], checkins: [], today: startOfWeek(2) });
+  assert.equal(s.weeks[0].hit, false);
+  assert.equal(s.lp, 20);
 });

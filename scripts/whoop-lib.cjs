@@ -58,19 +58,20 @@ function isExcludedSport(record, excluded) {
 }
 
 /*
-  toWorkoutRows(records, playerIds, { minMinutes, excludeSports })
+  toCheckinRows(records, fitnessGoals, { minMinutes, excludeSports })
+  fitnessGoals: [{ id, player_id }] — the workouts goal of each active player.
   Whoop workout records → rows for the workouts table, one per player row the
   person has (they may be in several groups). Short activities and excluded
   sports (walking by default) are dropped.
 */
-function toWorkoutRows(records, playerIds, opts) {
+function toCheckinRows(records, fitnessGoals, opts) {
   const minMinutes = (opts && opts.minMinutes) != null ? opts.minMinutes : DEFAULTS.minMinutes;
   const excluded = parseSportList((opts && opts.excludeSports) != null ? opts.excludeSports : DEFAULTS.excludeSports);
   const rows = [];
   (records || []).forEach((r) => {
     if (!r || !r.id || durationMinutes(r) < minMinutes || isExcludedSport(r, excluded)) return;
-    playerIds.forEach((pid) => {
-      rows.push({ player_id: pid, happened_at: r.start, source: "whoop", external_id: String(r.id), note: noteFor(r) });
+    (fitnessGoals || []).forEach((g) => {
+      rows.push({ player_id: g.player_id, goal_id: g.id, happened_at: r.start, source: "whoop", external_id: String(r.id), note: noteFor(r) });
     });
   });
   return rows;
@@ -130,5 +131,5 @@ function parseDotenv(text) {
 module.exports = {
   WHOOP, DEFAULTS,
   isElevenPmEastern, syncWindow, durationMinutes, humanSport, noteFor,
-  toWorkoutRows, activePlayerIds, tokenExpired, authUrl, parseCallback, parseDotenv, parseSportList, isExcludedSport
+  toCheckinRows, activePlayerIds, tokenExpired, authUrl, parseCallback, parseDotenv, parseSportList, isExcludedSport
 };

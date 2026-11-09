@@ -16,6 +16,10 @@ Run `supabase/002-profiles.sql` in the SQL editor once. It adds the `profiles` t
 
 No. Supabase designs the anon key to ship in browser code. What protects the data is Row Level Security, which `schema.sql` turns on: anyone can read the board, but you can only insert or delete workouts for your own player row. Never put the **service_role** key anywhere in this repo.
 
+## Already set up before the goals update?
+
+Run `supabase/004-goals.sql` once. It adds the `goals` table, renames `workouts` to `checkins` with a `goal_id`, gives every existing player a workouts goal copied from their old weekly target, attaches their workouts to it, and adds `players.tracking` (manual, whoop, apple_health). Run it **before** deploying the new game page, or the page will look for a table that is not there yet.
+
 ## Whoop sync
 
-Run `supabase/003-whoop.sql` once, then follow `docs/WHOOP.md`. A nightly GitHub Action inserts into `workouts` with `source = 'whoop'` and the Whoop workout id in `external_id`. The game rules only count rows per week, so nothing else changes. Any future source (an MCP tool, another wearable) should do the same.
+Run `supabase/003-whoop.sql` once, then follow `docs/WHOOP.md`. A nightly GitHub Action inserts into `checkins` against each player's workouts goal with `source = 'whoop'` and the Whoop workout id in `external_id`. The game rules only count rows per goal per week, so nothing else changes. Any future source (an MCP tool, another wearable) should do the same.

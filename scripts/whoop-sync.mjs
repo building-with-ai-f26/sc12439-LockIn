@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
   whoop-sync.mjs — nightly job: pull each connected person's Whoop workouts
-  for the last few days and log any new ones into Supabase.
+  for the last few days and log any new ones as check-ins on their workouts goal.
 
   Run by .github/workflows/whoop-sync.yml at 11:59 PM Eastern. Run locally:
     node scripts/whoop-sync.mjs --force        (skips the 11 PM guard)
@@ -99,18 +99,26 @@ for (const conn of connections) {
       continue;
     }
 
+    // Whoop only knows about workouts, so rows land on each player's fitness goal.
+    const fitnessGoals = await db("goals?select=id,player_id&type=eq.fitness&player_id=in.(" + playerIds.join(",") + ")");
+    if (!fitnessGoals.length) {
+      console.log(tag + " has no workouts goal in a running challenge; skipped");
+      await db("whoop_connections?user_id=eq." + conn.user_id, { method: "PATCH", body: { last_synced_at: now.toISOString(), last_error: null }, prefer: "return=minimal" });
+      continue;
+    }
+
     const records = await fetchWorkouts(fresh.access_token, window);
-    const candidates = W.toWorkoutRows(records, playerIds, { minMinutes: MIN_MINUTES, excludeSports: EXCLUDE });
+    const candidates = W.toCheckinRows(records, fitnessGoals, { minMinutes: MIN_MINUTES, excludeSports: EXCLUDE });
     // Skip anything already logged. (The unique index on (player_id, external_id) is
     // partial, which PostgREST's on_conflict cannot target, so we filter here; the
     // index still guards against a race.)
     const existing = candidates.length
-      ? await db("workouts?select=player_id,external_id&player_id=in.(" + playerIds.join(",") + ")&external_id=not.is.null")
+      ? await db("checkins?select=player_id,external_id&player_id=in.(" + playerIds.join(",") + ")&external_id=not.is.null")
       : [];
     const seen = new Set(existing.map((w) => w.player_id + "|" + w.external_id));
     const rows = candidates.filter((r) => !seen.has(r.player_id + "|" + r.external_id));
     let inserted = [];
-    if (rows.length) inserted = await db("workouts", { method: "POST", body: rows, prefer: "return=representation" });
+    if (rows.length) inserted = await db("checkins", { method: "POST", body: rows, prefer: "return=representation" });
     console.log(tag + " " + records.length + " Whoop workout(s) in window, " + candidates.length + " eligible, " + inserted.length + " new");
     inserted.forEach((r) => console.log("   + " + r.happened_at + "  " + r.note));
     await db("whoop_connections?user_id=eq." + conn.user_id, { method: "PATCH", body: { last_synced_at: now.toISOString(), last_error: null }, prefer: "return=minimal" });

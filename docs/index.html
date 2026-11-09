@@ -71,7 +71,7 @@
   <header>
     <div class="pixel" style="font-size:10px;color:var(--muted);margin-bottom:12px;">PRODUCT PAGE · PRD v1</div>
     <h1>LOCK-IN PARTY</h1>
-    <p class="tag">An 8-bit party game where friends lock in a 90-day goal, log their workouts, and evolve their characters by keeping their streaks and Lock-in Power alive.</p>
+    <p class="tag">An 8-bit party game where friends lock in 90-day goals (workouts, 10,000 steps, reading, no drinking), check in every day, and evolve their characters by keeping their streaks and Lock-in Power alive.</p>
     <div class="chips">
       <span class="chip">90 DAYS</span>
       <span class="chip">FRIENDS ONLY</span>
@@ -142,11 +142,11 @@
 
   <h2>▶ PLAY (BUILD 2)</h2>
   <div class="panel">
-    <p><strong>The game loop is live, Pokémon style.</strong> Everyone starts at 50 LP (Lock-in Power). Lock in 1 to 7 workouts per week and log each one. Hit the week, +10 LP. Miss it, -15 LP. Three hit weeks in a row evolves your character to RISING, seven to LOCKED IN. Break the streak or hit 0 LP and you devolve. Highest LP on day 90 wins. Connect a Whoop and your workouts log themselves every night at 11:59 PM.</p>
+    <p><strong>The game loop is live, Pokémon style.</strong> Everyone starts at 50 LP (Lock-in Power). Lock in one or more goals: workouts per week, 10,000-step days, reading days, dry days. Check in as you go. Hit every goal in a week, +10 LP. Miss any, -15 LP. Three hit weeks in a row evolves your character to RISING, seven to LOCKED IN. Break the streak or hit 0 LP and you devolve. Highest LP on day 90 wins. Connect a Whoop and your workouts log themselves every night at 11:59 PM.</p>
     <p style="margin-bottom:16px;"><a class="chip" style="text-decoration:none;color:var(--gold);" href="game.html">▶ START OR JOIN A CHALLENGE</a> <a class="chip" style="text-decoration:none;color:var(--gold);" href="character.html">▶ BUILD YOUR CHARACTER</a></p>
     <img class="shot" src="images/characters.png" alt="Seven 8-bit characters made with the character builder: different hair, skin tones, jackets, hoodies, tees, pants, shorts and skirts" style="min-height:0;image-rendering:pixelated;">
     <img class="shot" src="images/evolution.png" alt="One 8-bit character at three evolution stages: plain, with a blue aura, and with a gold aura and richer colours" style="min-height:0;image-rendering:pixelated;margin-top:12px;">
-    <p style="margin-top:12px;">Onboarding is three steps. Build your character first: a full-body 8-bit sprite with your choice of hair, face, glasses, top, bottoms, shoes and colours, and a photo can suggest your skin and hair tone. Then create or join a group. Then lock in your goal with your piece beside it. As your streak grows the same character gets richer colours and an aura.</p>
+    <p style="margin-top:12px;">Onboarding is four steps. Build your character first: a full-body 8-bit sprite with your choice of hair, face, glasses, top, bottoms, shoes and colours, and a photo can suggest your skin and hair tone. Then create or join a group; the system hands the creator an invite code. Then pick your goals, each with its own weekly target, and lock them in with your piece beside them. Finally choose how progress gets recorded: connect a Whoop, Apple Health (coming soon) or tap it in by hand. As your streak grows the same character gets richer colours and an aura.</p>
     <p class="todo">TODO: add a screenshot of a real challenge once the group has a week of check-ins.</p>
   </div>
 
@@ -185,9 +185,9 @@
     <table>
       <tr><td>What works</td><td>
         <ul>
-          <li>Core workflow end to end at <a href="game.html">game.html</a>: build your 8-bit character, create or join a group by invite code, lock in a fitness goal, log workouts, gain LP, evolve, and see the leaderboard.</li>
-          <li>Shared backend on Supabase free tier. Each phone signs in anonymously; Row Level Security means you can only write your own workouts. Verified with a two-identity smoke test against the live project.</li>
-          <li>Game rules, sprites, pixelation and the Whoop mapping are pure functions; 45 Node tests pass. Every screen was also screenshotted in headless Chrome against an in-memory fake backend before shipping.</li>
+          <li>Core workflow end to end at <a href="game.html">game.html</a>: build your 8-bit character, create or join a group by invite code, lock in one or more goals (workouts, steps, reading, no drinking), choose Whoop or manual tracking, check in, gain LP, evolve, and see the leaderboard.</li>
+          <li>Shared backend on Supabase free tier. Each phone signs in anonymously; Row Level Security means you can only write your own check-ins and goals. Verified with a two-identity smoke test against the live project.</li>
+          <li>Game rules, sprites, pixelation and the Whoop mapping are pure functions; 52 Node tests pass. Every screen was also screenshotted in headless Chrome against an in-memory fake backend before shipping.</li>
           <li>Whoop is connected for me and the first real sync ran from GitHub Actions. PostHog is receiving pageviews and the named events.</li>
         </ul>
       </td></tr>
@@ -204,12 +204,13 @@
       <tr><td>What broke or changed</td><td>
         <ul>
           <li>Chose Supabase over localStorage so friends share one board from GitHub Pages. Tradeoff: identity is per device, so switching phones means a new player.</li>
-          <li>Every workout is its own row with a <code>source</code> column so a Whoop sync or an MCP tool can feed the same table later without touching the rules.</li>
+          <li>Every check-in is its own row with a <code>source</code> column so a Whoop sync or an MCP tool can feed the same table later without touching the rules.</li>
+          <li>Widened from one fitness goal to four goal types after sketching the onboarding: the <code>workouts</code> table became <code>checkins</code> pointing at a <code>goals</code> row, so a dry day and a workout are the same kind of thing to the rules. A week is hit only when every goal is met, which keeps one LP bar and one streak per player. Steps, reading and dry days count once per calendar day. Onboarding gained a fourth step for choosing Whoop, Apple Health (not built; no web API) or manual entry.</li>
           <li>Hit weeks score the moment you hit the goal, not at week's end, for faster feedback.</li>
           <li>Replaced the race board with a Pokémon-style loop after playing the first version: LP as a health bar, evolution at 3 and 7 hit weeks in a row, devolve on a broken streak. One stat to protect reads better on a phone than 40 squares, and evolution gives streaks a visible payoff. Starting LP 50 and faint-reset 25 are first guesses to tune with real players.</li>
           <li>Replaced the pixelated-photo avatar with a hand-drawn sprite builder after seeing the reference style I actually wanted: flat colours, full body, 15×24 grid. A photo now only suggests colours. Still $0 and browser-only; an AI redraw remains a later experiment.</li>
           <li>Whoop sync shipped as a nightly GitHub Action at 11:59 PM Eastern: pulls the last 3 days of workouts of 30+ minutes (walks excluded) and logs them with <code>source = 'whoop'</code>, deduped by Whoop id. Tokens live in a service-role-only table, never in the repo. Setup in <a href="WHOOP.md">docs/WHOOP.md</a>.</li>
-          <li>PostHog installed on every page: pageviews and autocapture, plus named events for the moments that matter (character created, group created or joined, goal locked, workout logged or undone, week hit, evolved, invite copied). Identified by the anonymous Supabase id only; session recording off. Config in <code>docs/posthog-config.js</code>.</li>
+          <li>PostHog installed on every page: pageviews and autocapture, plus named events for the moments that matter (character created, group created or joined, goal locked, tracking chosen, check-in logged or undone, week hit, evolved, invite copied). Identified by the anonymous Supabase id only; session recording off. Config in <code>docs/posthog-config.js</code>.</li>
         </ul>
       </td></tr>
       <tr><td>Costs</td><td>$0 of new spend. Supabase free tier, GitHub Pages and Actions on a public repo, PostHog free tier, and a Whoop developer app, which is free with the Whoop membership I already pay for. Coding agent on an existing plan.</td></tr>

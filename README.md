@@ -1,6 +1,6 @@
 # Lock-In Party
 
-> **One-line pitch:** An 8-bit party game for a friend group that locks in 90-day fitness goals. Log your workouts (or let Whoop do it), keep your Lock-in Power high, and evolve your character Pokémon-style by holding a streak.
+> **One-line pitch:** An 8-bit party game for a friend group that locks in 90-day goals: workouts, 10,000 steps, reading, no drinking. Check in daily (or let Whoop log workouts for you), keep your Lock-in Power high, and evolve your character Pokémon-style by holding a streak.
 
 - **Builder:** Sheshu Chandrasekar (`@schandr47`)
 - **Pod:** TODO
@@ -12,19 +12,19 @@
 
 1. **Build your character.** A full-body 15×24 pixel sprite: hair, face, glasses, top, bottoms, shoes, colours. Upload a photo and it suggests your skin and hair tone.
 2. **Create or join a group** with an invite code or link.
-3. **Lock in your goal**, 1 to 7 workouts per week for 90 days. It cannot be changed afterwards.
-4. **Log workouts.** Tap "I worked out today", or connect a Whoop and the nightly sync logs anything of 30+ minutes (walks excluded) for you.
-5. **Keep your LP up.** Everyone starts at 50 Lock-in Power. Hit the week, +10. Miss it, −15. Three hit weeks in a row evolves you to RISING, seven to LOCKED IN. Break the streak or hit 0 LP and you devolve.
+3. **Lock in your goals** for 90 days: workouts per week, 10,000-step days, reading days, dry days, in any combination, each with its own weekly target. They cannot be changed afterwards.
+4. **Choose how you track.** Connect a Whoop and the nightly sync logs workouts of 30+ minutes (walks excluded) for you; Apple Health is coming later; or tap it in by hand. Steps, reading and dry days are always tapped in, once per day.
+5. **Keep your LP up.** Everyone starts at 50 Lock-in Power. Hit every goal in a week, +10. Miss any, −15. Three hit weeks in a row evolves you to RISING, seven to LOCKED IN. Break the streak or hit 0 LP and you devolve.
 6. **Highest LP on day 90 wins.** The leaderboard shows everyone's stage, LP and streak.
 
-All game math is derived from workout rows; nothing is stored as state. See `docs/game-rules.js`.
+All game math is derived from check-in rows; nothing is stored as state. See `docs/game-rules.js`.
 
 ## Repository map
 
 | File / folder | Purpose |
 | --- | --- |
 | [`docs/`](./docs/) | The whole site, served by GitHub Pages: product page + PRD (`index.html`), game (`game.html`, `game.js`), rules (`game-rules.js`), sprite system (`sprite.js`, `character-ui.js`), builder (`character.html`), Whoop callback, privacy page, analytics. |
-| [`supabase/`](./supabase/) | Database schema and migrations (`schema.sql`, `002-profiles.sql`, `003-whoop.sql`) and setup steps. |
+| [`supabase/`](./supabase/) | Database schema and migrations (`schema.sql`, `002-profiles.sql`, `003-whoop.sql`, `004-goals.sql`) and setup steps. |
 | [`scripts/`](./scripts/) | Whoop nightly sync, one-time Whoop connect, live smoke test. |
 | [`.github/workflows/whoop-sync.yml`](./.github/workflows/whoop-sync.yml) | Cron that runs the Whoop sync at 11:59 PM Eastern. |
 | [`tests/`](./tests/) | Node tests for rules, sprites, pixelation and Whoop mapping. |
@@ -71,5 +71,5 @@ Keep `SUPABASE_SERVICE_ROLE_KEY` and `WHOOP_CLIENT_SECRET` out of `docs/`, scree
 | Build | Status |
 | --- | --- |
 | 1 · Intent & prototype | Shipped. Product page, PRD v1, 8-Bit Me photo pixelator. |
-| 2 · Smallest local version | Shipped. Full game loop on Supabase, character builder, Pokémon-style LP and evolution, Whoop sync, PostHog. |
+| 2 · Smallest local version | Shipped. Full game loop on Supabase, character builder, Pokémon-style LP and evolution, four goal types, Whoop sync, PostHog. |
 | 3 onward | See the build log on the product page. |

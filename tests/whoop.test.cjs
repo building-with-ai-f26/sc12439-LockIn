@@ -23,21 +23,24 @@ test("sync window trails 3 days by default", () => {
   assert.equal(W.syncWindow(new Date("2026-11-10T00:00:00Z"), 1).start, "2026-11-09T00:00:00.000Z");
 });
 
-test("records map to one row per player with source whoop and the Whoop id", () => {
-  const rows = W.toWorkoutRows([rec()], ["p1", "p2"]);
+const G1 = { id: "g1", player_id: "p1" }, G2 = { id: "g2", player_id: "p2" };
+test("records map to one check-in per workouts goal with source whoop and the Whoop id", () => {
+  const rows = W.toCheckinRows([rec()], [G1, G2]);
   assert.equal(rows.length, 2);
   assert.deepEqual(rows[0], {
-    player_id: "p1", happened_at: "2026-11-09T22:00:00.000Z", source: "whoop",
+    player_id: "p1", goal_id: "g1", happened_at: "2026-11-09T22:00:00.000Z", source: "whoop",
     external_id: "8f5b4a1e-0000-4000-8000-000000000001", note: "Running · 45 min · strain 12.4"
   });
   assert.equal(rows[1].player_id, "p2");
+  assert.equal(rows[1].goal_id, "g2");
+  assert.equal(W.toCheckinRows([rec()], []).length, 0);   // no workouts goal → nothing to log
 });
 
 test("workouts under the minimum length are dropped; the threshold is configurable", () => {
   const short = rec({ id: "s", end: "2026-11-09T22:12:00.000Z" });   // 12 min
-  assert.equal(W.toWorkoutRows([short, rec()], ["p1"]).length, 1);
-  assert.equal(W.toWorkoutRows([short], ["p1"], { minMinutes: 10 }).length, 1);
-  assert.equal(W.toWorkoutRows([rec({ end: null })], ["p1"]).length, 0);   // still in progress
+  assert.equal(W.toCheckinRows([short, rec()], [G1]).length, 1);
+  assert.equal(W.toCheckinRows([short], [G1], { minMinutes: 10 }).length, 1);
+  assert.equal(W.toCheckinRows([rec({ end: null })], [G1]).length, 0);   // still in progress
 });
 
 test("note humanises the sport and copes with no score yet", () => {
@@ -86,10 +89,10 @@ test("defaults: 30 minutes minimum and walking excluded; both configurable", () 
   const run25 = rec({ id: "r25", end: "2026-11-09T22:25:00.000Z" });            // 25 min run → dropped
   const walk60 = rec({ id: "w60", sport_name: "Walking", end: "2026-11-09T23:00:00.000Z" }); // 60 min walk → dropped
   const lift = rec({ id: "l", sport_name: "weightlifting" });                   // 45 min → kept
-  assert.deepEqual(W.toWorkoutRows([run25, walk60, lift], ["p1"]).map((r) => r.external_id), ["l"]);
-  assert.equal(W.toWorkoutRows([run25], ["p1"], { minMinutes: 20 }).length, 1);
-  assert.equal(W.toWorkoutRows([walk60], ["p1"], { excludeSports: [] }).length, 1);
-  assert.equal(W.toWorkoutRows([walk60, lift], ["p1"], { excludeSports: "walking, Weightlifting" }).length, 0);
+  assert.deepEqual(W.toCheckinRows([run25, walk60, lift], [G1]).map((r) => r.external_id), ["l"]);
+  assert.equal(W.toCheckinRows([run25], [G1], { minMinutes: 20 }).length, 1);
+  assert.equal(W.toCheckinRows([walk60], [G1], { excludeSports: [] }).length, 1);
+  assert.equal(W.toCheckinRows([walk60, lift], [G1], { excludeSports: "walking, Weightlifting" }).length, 0);
   assert.deepEqual(W.parseSportList(" Walking ,hiking,,"), ["walking", "hiking"]);
   assert.equal(W.isExcludedSport({ sport_name: "FUNCTIONAL_FITNESS" }, ["functional fitness"]), true);
 });

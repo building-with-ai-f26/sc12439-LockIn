@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lock-In Party · Play</title>
-<meta name="description" content="Lock in a 90-day fitness goal with friends. Log workouts, keep your Lock-in Power high, evolve.">
+<meta name="description" content="Lock in 90-day goals with friends: workouts, 10,000 steps, reading, no drinking. Check in, keep your Lock-in Power high, evolve.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -86,6 +86,23 @@
   tr.me td { background: rgba(255, 210, 63, .08); }
   .stage { font-family: "Press Start 2P", monospace; font-size: 8px; padding: 3px 6px; border: 2px solid #000; background: var(--border); color: var(--ink); display: inline-block; vertical-align: middle; }
   .stage.s2 { background: var(--blue); color: #000; } .stage.s3 { background: var(--gold); color: #000; }
+  .goals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  @media (max-width: 520px) { .goals { grid-template-columns: 1fr; } }
+  .goal-card { display: block; background: #0c0b1d; border: 3px solid var(--border); padding: 12px; cursor: pointer; opacity: .6; }
+  .goal-card.on { border-color: var(--green); opacity: 1; box-shadow: 4px 4px 0 #000; }
+  .goal-card .head { display: flex; align-items: center; gap: 10px; font-family: "Press Start 2P", monospace; font-size: 10px; color: var(--gold); }
+  .goal-card input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--green); margin: 0; }
+  .goal-card .desc { font-size: 13px; color: var(--muted); margin: 8px 0; }
+  .goal-card .opts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .goal-card .opts select { width: auto; font-size: 9px; padding: 8px; }
+  .tracks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .tracks { grid-template-columns: 1fr; } }
+  .tracks .panel { margin: 0; display: flex; flex-direction: column; } .tracks .panel p { flex: 1; }
+  .tracks .panel.picked { border-color: var(--green); }
+  .grow { display: grid; grid-template-columns: 110px 1fr 48px; gap: 10px; align-items: center; margin-top: 8px; }
+  .grow .lbl { font-size: 8px; color: var(--muted); } .grow .cnt { font-size: 9px; color: var(--gold); text-align: right; }
+  .grow .pips { margin: 0; }
+  .logbtns { display: grid; gap: 10px; } .logbtns .btn { width: 100%; text-align: center; }
   .you { display: flex; gap: 12px; align-items: center; background: #0c0b1d; border: 2px solid var(--border); padding: 10px; margin-bottom: 16px; }
   footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
   [hidden] { display: none !important; }
@@ -106,9 +123,9 @@
 
   <!-- STEP 2: create or join a group -->
   <section data-view="home" hidden>
-    <div class="step pixel">STEP 2 OF 3 · <span>GROUP</span></div>
+    <div class="step pixel">STEP 2 OF 4 · <span>GROUP</span></div>
     <h1>LOCK-IN PARTY</h1>
-    <p class="muted">Lock in a 90-day fitness goal with your friends. Hit your week to gain Lock-in Power and evolve. Miss it and you lose LP and can devolve. Highest LP on day 90 wins.</p>
+    <p class="muted">Lock in 90-day goals with your friends: workouts, steps, reading, no drinking. Hit your week to gain Lock-in Power and evolve. Miss it and you lose LP and can devolve. Highest LP on day 90 wins.</p>
     <div class="you">
       <canvas class="piece row" id="homePiece" width="15" height="24"></canvas>
       <div>
@@ -126,6 +143,7 @@
       </div>
       <div class="panel">
         <h2>▶ JOIN WITH A CODE</h2>
+        <p class="muted" style="font-size:13px">Whoever starts the group gets a code to share. Paste it here.</p>
         <label class="f"><span class="pixel">INVITE CODE</span><input type="text" id="joinCode" maxlength="8" placeholder="e.g. 7KQ2ZD" style="text-transform:uppercase"></label>
         <button class="btn alt" id="joinBtn" type="button">JOIN</button>
         <div class="msg" id="joinMsg"></div>
@@ -135,7 +153,7 @@
 
   <!-- ONBOARDING STEP 1: build your character -->
   <section data-view="character" hidden>
-    <div class="step pixel">STEP 1 OF 3 · <span>CHARACTER</span></div>
+    <div class="step pixel">STEP 1 OF 4 · <span>CHARACTER</span></div>
     <h1>BUILD YOUR CHARACTER</h1>
     <p class="muted" id="charIntro">This is you in the game. Upload a photo to pick your colours, or hit RANDOM and tweak. It evolves when you hit your goal three weeks in a row.</p>
     <div class="panel">
@@ -148,11 +166,11 @@
     </div>
   </section>
 
-  <!-- ONBOARDING STEP 2: lock in a goal -->
+  <!-- ONBOARDING STEP 3: lock in goals -->
   <section data-view="intake" hidden>
-    <div class="step pixel">STEP 3 OF 3 · <span>GOAL</span></div>
-    <h1>LOCK IN YOUR GOAL</h1>
-    <p class="muted">Joining <strong id="intakeChallenge"></strong>. Write it once. It cannot be changed after you lock in.</p>
+    <div class="step pixel">STEP 3 OF 4 · <span>GOALS</span></div>
+    <h1>LOCK IN YOUR GOALS</h1>
+    <p class="muted">Joining <strong id="intakeChallenge"></strong>. Pick one or more. They cannot be changed after you lock in.</p>
     <div class="grid">
       <div class="panel">
         <h2>▶ YOUR PIECE</h2>
@@ -166,22 +184,42 @@
         </div>
       </div>
       <div class="panel">
-        <h2>▶ FITNESS GOAL</h2>
-        <label class="f"><span class="pixel">WORKOUTS PER WEEK</span>
-          <select id="pPerWeek">
-            <option value="1">1 WORKOUT / WEEK</option>
-            <option value="2">2 WORKOUTS / WEEK</option>
-            <option value="3" selected>3 WORKOUTS / WEEK</option>
-            <option value="4">4 WORKOUTS / WEEK</option>
-            <option value="5">5 WORKOUTS / WEEK</option>
-            <option value="6">6 WORKOUTS / WEEK</option>
-            <option value="7">7 WORKOUTS / WEEK</option>
-          </select></label>
+        <h2>▶ PICK YOUR GOALS</h2>
+        <div class="goals" id="goalCards"></div>
         <p class="muted" id="goalPreview"></p>
-        <p class="muted" style="font-size:13px">Rules: everyone starts at 50 LP. Hit the week, +10 LP. Miss it, -15 LP. Three hit weeks in a row evolves you, seven more makes you LOCKED IN. Break a streak or hit 0 LP and you devolve. Highest LP after 13 weeks wins.</p>
+        <p class="muted" style="font-size:13px">Rules: everyone starts at 50 LP. A week is hit only when every goal is met: +10 LP. Miss any, -15 LP. Three hit weeks in a row evolves you, seven makes you LOCKED IN. Break a streak or hit 0 LP and you devolve. Highest LP after 13 weeks wins.</p>
         <button class="btn green" id="lockBtn" type="button">LOCK IT IN</button>
         <div class="msg" id="lockMsg"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ONBOARDING STEP 4: how progress gets recorded -->
+  <section data-view="tracking" hidden>
+    <div class="step pixel">STEP 4 OF 4 · <span>TRACKING</span></div>
+    <h1>HOW WILL YOU TRACK?</h1>
+    <p class="muted">You can always tap check-ins in the game. Whoop can log workouts for you while you sleep.</p>
+    <div class="tracks">
+      <div class="panel" data-track="whoop">
+        <h2>▶ WHOOP</h2>
+        <p class="muted" style="font-size:14px">Workouts of 30+ minutes (walks excluded) sync every night at 11:59 PM Eastern. Steps, reading and dry days are still tapped in by hand.</p>
+        <button class="btn" id="whoopBtn" type="button">CONNECT WHOOP</button>
+        <div class="msg" id="whoopHint"></div>
+      </div>
+      <div class="panel" data-track="apple_health">
+        <h2>▶ APPLE HEALTH</h2>
+        <p class="muted" style="font-size:14px">Coming soon. Apple Health has no web API, so this needs an iPhone Shortcut. Pick manual for now and switch later.</p>
+        <button class="btn alt" type="button" disabled>COMING SOON</button>
+      </div>
+      <div class="panel" data-track="manual">
+        <h2>▶ ENTER MANUALLY</h2>
+        <p class="muted" style="font-size:14px">Tap a button in the game each day. Works for every goal and takes two seconds.</p>
+        <button class="btn green" id="manualBtn" type="button">TAP IT IN ▶</button>
+      </div>
+    </div>
+    <div class="row" style="margin-top:16px;justify-content:space-between">
+      <div class="msg" id="trackMsg" style="margin:0"></div>
+      <button class="btn alt" id="trackNext" type="button" hidden>CONTINUE TO THE GAME ▶</button>
     </div>
   </section>
 
@@ -221,19 +259,21 @@
             <div class="stat"><span class="big" id="sDays">90</span><span class="pixel">DAYS LEFT</span></div>
           </div>
           <div class="pixel" style="font-size:10px" id="weekLabel"></div>
-          <div class="pips" id="pips"></div>
-          <div class="muted" id="weekMsg"></div>
+          <div id="goalRows"></div>
+          <div class="muted" style="margin-top:8px" id="weekMsg"></div>
           <div class="weeks" id="weeks"></div>
         </div>
         <div class="panel">
-          <h2>▶ LOG A WORKOUT</h2>
-          <button class="btn huge green" id="logBtn" type="button">I WORKED OUT TODAY</button>
+          <h2>▶ CHECK IN</h2>
+          <div class="logbtns" id="logButtons"></div>
           <div class="row" style="margin-top:14px">
+            <select id="logGoal" style="width:auto"></select>
             <input type="date" id="logDate" style="width:auto">
             <button class="btn alt" id="logPastBtn" type="button">LOG THAT DAY</button>
             <button class="btn alt" id="undoBtn" type="button">UNDO LAST</button>
           </div>
           <div class="msg" id="logMsg"></div>
+          <p class="muted" style="font-size:13px;margin:10px 0 0" id="trackLine"></p>
         </div>
       </div>
       <div>
@@ -246,13 +286,14 @@
     </div>
   </section>
 
-  <footer>Build 2 · fitness goals only · <a href="character.html">character builder</a> · <a href="#" id="signout">new identity</a></footer>
+  <footer>Build 2 · workouts, steps, reading and dry days · <a href="privacy.html">privacy</a> · <a href="character.html">character builder</a> · <a href="#" id="signout">new identity</a></footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="posthog-config.js"></script>
 <script src="analytics.js"></script>
 <script src="supabase-config.js"></script>
+<script src="whoop-config.js"></script>
 <script src="sprite.js"></script>
 <script src="character-ui.js"></script>
 <script src="game-rules.js"></script>

@@ -4,18 +4,21 @@
   the math. Each device signs in anonymously; that identity owns one
   profile (your character) and one player row per group.
 
-  Flow: character (profiles) → group (challenges) → goal (players) → play.
+  Flow: character (profiles) → group (challenges) → goals (players + goals)
+        → tracking (players.tracking) → play (checkins).
 */
 (function () {
   "use strict";
   var cfg = window.LOCKIN_SUPABASE || {};
+  var whoopCfg = window.LOCKIN_WHOOP || {};
   var $ = function (id) { return document.getElementById(id); };
   var sb = null, uid = null;
   var profile = null;         // my character: { name, avatar_data_url, avatar_options }
-  var challenge = null, me = null, players = [], workouts = [];
+  var challenge = null, me = null, players = [], goals = [], checkins = [];
   var builder = null;         // CharacterUI instance, mounted on first use
   var afterCharacter = null;  // where to go once the character is saved
   var lastSummary = null;     // to detect a hit or evolution after logging
+  var trackingBack = null;    // where CONTINUE on the tracking view goes
 
   // ---------- tiny helpers ----------
   function show(view) {
@@ -39,6 +42,7 @@
     if (!dataUrl) return;
     var img = new Image(); img.onload = function () { ctx.drawImage(img, 0, 0, Sprite.WIDTH, Sprite.HEIGHT); }; img.src = dataUrl;
   }
+  function myGoals(player) { return goals.filter(function (g) { return g.player_id === player.id; }); }
 
   // ---------- boot ----------
   async function init() {
@@ -138,31 +142,125 @@
     openIntake();
   }
 
-  // ---------- step 3: goal ----------
+  // ---------- step 3: goals ----------
+  var cardsBuilt = false;
+  function perWeekOptions(selected, type) {
+    var out = "";
+    for (var n = 1; n <= 7; n++) {
+      var txt = type === "fitness" ? n + " WORKOUT" + (n === 1 ? "" : "S") + " / WEEK" : n === 7 ? "EVERY DAY" : n + " DAY" + (n === 1 ? "" : "S") + " / WEEK";
+      out += '<option value="' + n + '"' + (n === selected ? " selected" : "") + ">" + txt + "</option>";
+    }
+    return out;
+  }
+  function buildGoalCards() {
+    if (cardsBuilt) return; cardsBuilt = true;
+    $("goalCards").innerHTML = GameRules.GOAL_ORDER.map(function (type) {
+      var def = GameRules.GOAL_TYPES[type];
+      var extra = type === "steps"
+        ? '<select data-setting="steps">' + [5000, 7500, 10000, 12000, 15000].map(function (v) { return '<option value="' + v + '"' + (v === 10000 ? " selected" : "") + ">" + GameRules.goalText({ type: "steps", per_week: 7, settings: { steps: v } }).split(" ")[0] + " STEPS</option>"; }).join("") + "</select>"
+        : type === "reading"
+          ? '<select data-setting="minutes">' + [10, 20, 30, 60].map(function (v) { return '<option value="' + v + '"' + (v === 20 ? " selected" : "") + ">" + v + " MIN</option>"; }).join("") + "</select>"
+          : "";
+      return '<label class="goal-card' + (type === "fitness" ? " on" : "") + '" data-type="' + type + '">' +
+        '<div class="head"><input type="checkbox"' + (type === "fitness" ? " checked" : "") + "> " + def.label + "</div>" +
+        '<div class="desc">' + esc(def.describe) + "</div>" +
+        '<div class="opts">' + extra + '<select data-per-week>' + perWeekOptions(def.defaultPerWeek, type) + "</select></div></label>";
+    }).join("");
+    $("goalCards").addEventListener("change", function (e) {
+      var card = e.target.closest(".goal-card");
+      if (e.target.type === "checkbox") card.classList.toggle("on", e.target.checked);
+      else if (!card.querySelector("input").checked) { card.querySelector("input").checked = true; card.classList.add("on"); }
+      updateGoalPreview();
+    });
+  }
+  // Read the cards into goal rows: [{ type, per_week, settings, text }]
+  function selectedGoals() {
+    return Array.prototype.map.call($("goalCards").querySelectorAll(".goal-card"), function (card) {
+      if (!card.querySelector("input").checked) return null;
+      var settings = {};
+      card.querySelectorAll("[data-setting]").forEach(function (sel) { settings[sel.dataset.setting] = +sel.value; });
+      var g = { type: card.dataset.type, per_week: +card.querySelector("[data-per-week]").value, settings: settings };
+      g.text = GameRules.goalText(g);
+      return g;
+    }).filter(Boolean);
+  }
+  function goalSummary(list) { return list.map(function (g) { return g.text; }).join(" · "); }
+  function updateGoalPreview() {
+    var list = selectedGoals();
+    $("goalPreview").textContent = list.length ? "Your locked goals: " + goalSummary(list) + ", for 90 days." : "Pick at least one goal.";
+    $("lockBtn").disabled = !list.length;
+  }
   function openIntake() {
     $("intakeChallenge").textContent = challenge.name + " (starts " + challenge.starts_on + ")";
     $("pieceName").textContent = profile.name;
     drawPiece($("piecePreview"), profile.avatar_options, profile.avatar_data_url, 1);
+    buildGoalCards();
     updateGoalPreview();
     show("intake");
   }
-  function goalText(n) { return "Work out " + n + "× per week"; }
-  function updateGoalPreview() { $("goalPreview").textContent = "Your locked goal: “" + goalText($("pPerWeek").value) + "” for 90 days."; }
-
   async function lockIn() {
-    var n = +$("pPerWeek").value;
-    if (!confirm("Lock in “" + goalText(n) + "” for 90 days? This cannot be changed.")) return;
+    var list = selectedGoals();
+    if (!list.length) { msg("lockMsg", "Pick at least one goal.", "err"); return; }
+    if (!confirm("Lock in " + goalSummary(list) + " for 90 days? This cannot be changed.")) return;
     msg("lockMsg", "Locking in…");
-    var r = await sb.from("players").insert({
-      challenge_id: challenge.id, user_id: uid, name: profile.name,
-      avatar_data_url: profile.avatar_data_url, avatar_options: profile.avatar_options,
-      goal_type: "fitness", goal_per_week: n, goal_text: goalText(n)
-    }).select().single();
-    if (r.error) { fail("lockMsg", r.error); return; }
-    me = r.data;
-    Analytics.track("goal_locked", { goal_per_week: n });
-    await refresh();
-    show("play");
+    // A retry after a half-finished lock-in finds the player row already there.
+    var ex = await sb.from("players").select("*").eq("user_id", uid).eq("challenge_id", challenge.id).maybeSingle();
+    var player = ex.data;
+    if (!player) {
+      var r = await sb.from("players").insert({
+        challenge_id: challenge.id, user_id: uid, name: profile.name,
+        avatar_data_url: profile.avatar_data_url, avatar_options: profile.avatar_options,
+        goal_text: goalSummary(list), tracking: "manual"
+      }).select().single();
+      if (r.error) { fail("lockMsg", r.error); return; }
+      player = r.data;
+    }
+    var have = await sb.from("goals").select("id").eq("player_id", player.id);
+    if (!have.data || !have.data.length) {
+      var g = await sb.from("goals").insert(list.map(function (x) { return { player_id: player.id, type: x.type, per_week: x.per_week, settings: x.settings, text: x.text }; })).select();
+      if (g.error) { fail("lockMsg", g.error); return; }
+    }
+    me = player;
+    Analytics.track("goal_locked", { goals: list.map(function (x) { return x.type + ":" + x.per_week; }).join(","), count: list.length });
+    openTracking(function () { return refresh().then(function () { show("play"); }); });
+  }
+
+  // ---------- step 4: tracking ----------
+  function whoopAuthUrl() {
+    var state = Math.random().toString(36).slice(2, 10).padEnd(8, "0");   // Whoop wants exactly 8 chars
+    var q = new URLSearchParams({ response_type: "code", client_id: whoopCfg.clientId, redirect_uri: whoopCfg.redirectUri, scope: "offline read:workout read:profile", state: state });
+    return "https://api.prod.whoop.com/oauth/oauth2/auth?" + q;
+  }
+  function openTracking(then) {
+    trackingBack = then;
+    var hasWhoop = !!whoopCfg.clientId;
+    $("whoopBtn").disabled = !hasWhoop;
+    msg("whoopHint", hasWhoop ? "" : "Whoop is not set up for this game yet.");
+    document.querySelectorAll("[data-track]").forEach(function (el) { el.classList.toggle("picked", el.dataset.track === (me.tracking || "manual")); });
+    $("trackNext").hidden = true;
+    msg("trackMsg", "");
+    show("tracking");
+  }
+  async function setTracking(value) {
+    var r = await sb.from("players").update({ tracking: value }).eq("id", me.id).select().single();
+    if (r.error) { fail("trackMsg", r.error); return false; }
+    me.tracking = value;
+    Analytics.track("tracking_chosen", { tracking: value });
+    document.querySelectorAll("[data-track]").forEach(function (el) { el.classList.toggle("picked", el.dataset.track === value); });
+    return true;
+  }
+  async function chooseWhoop() {
+    var url = whoopAuthUrl();
+    window.open(url, "_blank", "noopener");
+    if (!(await setTracking("whoop"))) return;
+    msg("whoopHint", "A Whoop tab opened. Approve, then send the code it shows to " + (whoopCfg.owner || "the group owner") + ". Your workouts start syncing nightly once they finish it. If the tab did not open, use the link below.", "ok");
+    var a = document.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Open Whoop login"; a.style.fontSize = "13px";
+    $("whoopHint").appendChild(document.createElement("br")); $("whoopHint").appendChild(a);
+    $("trackNext").hidden = false;
+  }
+  async function chooseManual() {
+    if (!(await setTracking("manual"))) return;
+    await trackingBack();
   }
 
   // ---------- play ----------
@@ -171,19 +269,29 @@
     if (p.error) { fail("logMsg", p.error); return; }
     players = p.data;
     var ids = players.map(function (x) { return x.id; });
-    var w = await sb.from("workouts").select("*").in("player_id", ids).order("happened_at");
-    if (w.error) { fail("logMsg", w.error); return; }
-    workouts = w.data;
+    var g = await sb.from("goals").select("*").in("player_id", ids).order("created_at");
+    if (g.error) { fail("logMsg", g.error); return; }
+    goals = g.data;
+    var c = await sb.from("checkins").select("*").in("player_id", ids).order("happened_at");
+    if (c.error) { fail("logMsg", c.error); return; }
+    checkins = c.data;
+    me = players.filter(function (x) { return x.id === me.id; })[0] || me;
     render();
   }
   function summaryFor(player) {
     return GameRules.summarize({
-      startsOn: challenge.starts_on, perWeek: player.goal_per_week,
-      workouts: workouts.filter(function (x) { return x.player_id === player.id; })
+      startsOn: challenge.starts_on, goals: myGoals(player),
+      checkins: checkins.filter(function (x) { return x.player_id === player.id; })
     });
   }
   function lpClass(lp) { return lp > 50 ? "" : lp > 25 ? "mid" : "low"; }
   function stageHTML(s) { return '<span class="stage s' + s.stage + '">' + s.stageName + "</span>"; }
+  function pipsHTML(count, perWeek) {
+    var out = "";
+    for (var i = 0; i < perWeek; i++) out += '<i class="' + (i < count ? "on" : "") + '"></i>';
+    return '<div class="pips">' + out + "</div>";
+  }
+  function trackingLabel(t) { return t === "whoop" ? "Whoop" : t === "apple_health" ? "Apple Health" : "manual"; }
 
   function render() {
     var s = summaryFor(me);
@@ -193,8 +301,8 @@
     $("meName").textContent = me.name.toUpperCase();
     $("meStage").textContent = "STAGE " + s.stage + " · " + s.stageName;
     $("meStage").className = "stage s" + s.stage;
-    var fromWhoop = workouts.filter(function (x) { return x.player_id === me.id && x.source === "whoop"; }).length;
-    $("meGoal").textContent = me.goal_text + " · " + s.totalWorkouts + " workouts logged" + (fromWhoop ? " (" + fromWhoop + " from Whoop)" : "");
+    var fromWhoop = checkins.filter(function (x) { return x.player_id === me.id && x.source === "whoop"; }).length;
+    $("meGoal").textContent = me.goal_text + " · " + s.totalCheckins + " check-in" + (s.totalCheckins === 1 ? "" : "s") + (fromWhoop ? " (" + fromWhoop + " from Whoop)" : "");
     $("meLP").textContent = s.lp + " / " + GameRules.RULES.lpMax;
     $("meLPFill").style.width = (s.lp / GameRules.RULES.lpMax * 100) + "%";
     $("meLPFill").className = "lp-fill " + lpClass(s.lp);
@@ -208,33 +316,47 @@
 
     if (!s.started) {
       $("weekLabel").textContent = "STARTS " + challenge.starts_on;
-      $("weekMsg").textContent = "The challenge hasn't started yet. Workouts logged now won't count.";
+      $("weekMsg").textContent = "The challenge hasn't started yet. Check-ins logged now won't count.";
     } else if (s.over) {
       $("weekLabel").textContent = "CHALLENGE OVER";
       $("weekMsg").textContent = "90 days done. You finished at " + s.lp + " LP, stage " + s.stage + ".";
     } else {
-      $("weekLabel").textContent = "WEEK " + (s.currentWeek + 1) + " OF " + s.totalWeeks + " · " + s.thisWeekCount + "/" + me.goal_per_week;
-      $("weekMsg").textContent = s.thisWeekHit ? "Week hit, +10 LP banked. Anything extra is gravy." : s.thisWeekRemaining + " more to hit this week. Missing costs 15 LP.";
+      $("weekLabel").textContent = "WEEK " + (s.currentWeek + 1) + " OF " + s.totalWeeks;
+      var open = s.goals.filter(function (g) { return !g.thisWeekHit; });
+      $("weekMsg").textContent = s.thisWeekHit ? "Week hit, +10 LP banked. Anything extra is gravy."
+        : s.thisWeekRemaining + " more to hit this week (" + open.map(function (g) { return g.thisWeekRemaining + " " + g.unit + (g.thisWeekRemaining === 1 ? "" : "s"); }).join(", ") + "). Missing costs 15 LP.";
     }
-    var pips = "";
-    for (var i = 0; i < me.goal_per_week; i++) pips += '<i class="' + (i < s.thisWeekCount ? "on" : "") + '"></i>';
-    $("pips").innerHTML = pips;
+    $("goalRows").innerHTML = s.goals.map(function (g) {
+      return '<div class="grow"><span class="pixel lbl">' + g.label + "</span>" + pipsHTML(g.thisWeekCount, g.perWeek) + '<span class="pixel cnt">' + g.thisWeekCount + "/" + g.perWeek + "</span></div>";
+    }).join("");
     $("weeks").innerHTML = s.weeks.map(function (wk) {
       var cls = wk.status === "current" ? "current " : "";
       if (wk.scored) cls += wk.hit ? "hit" : "miss";
-      var tip = "Week " + (wk.index + 1) + ": " + wk.count + " workouts" + (wk.scored ? " · " + wk.events.join(", ") + " · " + wk.lp + " LP" : "");
+      var detail = s.goals.map(function (g, i) { return g.label.toLowerCase() + " " + wk.counts[i] + "/" + g.perWeek; }).join(", ");
+      var tip = "Week " + (wk.index + 1) + ": " + detail + (wk.scored ? " · " + wk.events.join(", ") + " · " + wk.lp + " LP" : "");
       return '<i class="' + cls + '" title="' + esc(tip) + '"></i>';
     }).join("");
-    $("logBtn").disabled = !s.started || s.over;
+
+    // Check-in buttons, one per goal. Once-per-day goals grey out after today's tap.
+    var canLog = s.started && !s.over;
+    $("logButtons").innerHTML = s.goals.map(function (g) {
+      var done = g.oncePerDay && g.loggedToday;
+      return '<button class="btn ' + (s.goals.length === 1 ? "huge " : "") + (done ? "alt" : "green") + '" type="button" data-log="' + g.id + '"' + (canLog && !done ? "" : " disabled") + ">" +
+        (done ? "✓ " + g.label + " LOGGED TODAY" : g.action) + "</button>";
+    }).join("");
+    $("logGoal").innerHTML = s.goals.map(function (g) { return '<option value="' + g.id + '">' + g.label + "</option>"; }).join("");
     $("logDate").max = todayISO();
+    $("trackLine").innerHTML = "Tracking: " + trackingLabel(me.tracking) + (me.tracking === "whoop" ? " (workouts sync nightly)" : "") + ' · <a href="#" id="trackLink">change</a>';
+    $("trackLink").addEventListener("click", function (e) { e.preventDefault(); openTracking(function () { show("play"); }); });
 
     // Leaderboard
     var rows = players.map(function (pl) { return { p: pl, s: summaryFor(pl) }; });
     rows.sort(function (a, b) { return GameRules.compare(a.s, b.s); });
     $("standings").innerHTML = rows.map(function (r, i) {
+      var week = r.s.goals.map(function (g) { return g.thisWeekCount + "/" + g.perWeek; }).join(" · ");
       return '<tr class="' + (r.p.id === me.id ? "me" : "") + '"><td class="n">' + (i + 1) + '</td><td class="pc"><canvas class="piece row" data-row="' + i + '" width="15" height="24"></canvas></td>' +
         "<td><strong>" + esc(r.p.name) + "</strong> " + stageHTML(r.s) +
-        '<br><span class="muted" style="font-size:13px">' + esc(r.p.goal_text) + " · wk " + r.s.thisWeekCount + "/" + r.p.goal_per_week + " · streak " + r.s.streak + "</span>" +
+        '<br><span class="muted" style="font-size:13px">' + esc(r.s.goals.map(function (g) { return GameRules.goalShort({ type: g.type, per_week: g.perWeek }); }).join(" + ") || r.p.goal_text) + " · wk " + week + " · streak " + r.s.streak + (r.p.tracking === "whoop" ? " · Whoop" : "") + "</span>" +
         '<div class="lp sm"><div class="lp-bar"><div class="lp-fill ' + lpClass(r.s.lp) + '" style="width:' + (r.s.lp / GameRules.RULES.lpMax * 100) + '%"></div></div></div></td>' +
         '<td class="n">' + r.s.lp + "<br><span style=\"color:var(--muted)\">LP</span></td></tr>";
     }).join("");
@@ -242,7 +364,7 @@
       var r = rows[+c.dataset.row]; drawPiece(c, r.p.avatar_options, r.p.avatar_data_url, r.s.stage);
     });
 
-    // Banner when a log just hit the week or evolved us.
+    // Banner when a check-in just hit the week or evolved us.
     if (lastSummary) {
       var b = $("banner");
       if (s.stage > lastSummary.stage) {
@@ -259,22 +381,28 @@
     lastSummary = s;
   }
 
-  async function logWorkout(whenISO) {
+  async function logCheckin(goalId, whenISO) {
+    var goal = lastSummary && lastSummary.goals.filter(function (g) { return g.id === goalId; })[0];
+    if (!goal) { msg("logMsg", "Pick a goal first.", "err"); return; }
+    var day = GameRules.toDay(whenISO);
+    if (goal.oncePerDay && checkins.some(function (c) { return c.player_id === me.id && c.goal_id === goalId && GameRules.toDay(c.happened_at) === day; })) {
+      msg("logMsg", goal.label + " is already logged for " + day + ". One per day.", "err"); return;
+    }
     msg("logMsg", "Logging…");
-    var r = await sb.from("workouts").insert({ player_id: me.id, happened_at: whenISO, source: "manual" });
+    var r = await sb.from("checkins").insert({ player_id: me.id, goal_id: goalId, happened_at: whenISO, source: "manual" });
     if (r.error) { fail("logMsg", r.error); return; }
     msg("logMsg", "Logged. Keep going.", "ok");
-    Analytics.track("workout_logged", { source: "manual", backdated: whenISO.slice(0, 10) !== todayISO() });
+    Analytics.track("checkin_logged", { goal: goal.type, source: "manual", backdated: day !== todayISO() });
     await refresh();
   }
   async function undoLast() {
-    var mine = workouts.filter(function (x) { return x.player_id === me.id && x.source === "manual"; });
+    var mine = checkins.filter(function (x) { return x.player_id === me.id && x.source === "manual"; });
     if (!mine.length) { msg("logMsg", "Nothing to undo.", "err"); return; }
     var last = mine.sort(function (a, b) { return a.created_at < b.created_at ? 1 : -1; })[0];
-    var r = await sb.from("workouts").delete().eq("id", last.id);
+    var r = await sb.from("checkins").delete().eq("id", last.id);
     if (r.error) { fail("logMsg", r.error); return; }
-    msg("logMsg", "Removed your last manual workout.", "ok");
-    Analytics.track("workout_undone");
+    msg("logMsg", "Removed your last manual check-in.", "ok");
+    Analytics.track("checkin_undone");
     await refresh();
   }
 
@@ -285,12 +413,17 @@
   $("editCharBtn").addEventListener("click", function () { openCharacter(openIntake); });
   $("createBtn").addEventListener("click", create);
   $("joinBtn").addEventListener("click", join);
-  $("pPerWeek").addEventListener("change", updateGoalPreview);
   $("lockBtn").addEventListener("click", lockIn);
-  $("logBtn").addEventListener("click", function () { logWorkout(new Date().toISOString()); });
+  $("whoopBtn").addEventListener("click", chooseWhoop);
+  $("manualBtn").addEventListener("click", chooseManual);
+  $("trackNext").addEventListener("click", function () { trackingBack(); });
+  $("logButtons").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-log]"); if (!b) return;
+    logCheckin(b.dataset.log, new Date().toISOString());
+  });
   $("logPastBtn").addEventListener("click", function () {
     var d = $("logDate").value; if (!d) { msg("logMsg", "Pick a date first.", "err"); return; }
-    logWorkout(new Date(d + "T12:00:00").toISOString());   // noon local, so it lands on that calendar day
+    logCheckin($("logGoal").value, new Date(d + "T12:00:00").toISOString());   // noon local, so it lands on that calendar day
   });
   $("undoBtn").addEventListener("click", undoLast);
   $("refreshBtn").addEventListener("click", refresh);
