@@ -60,6 +60,9 @@
   td:first-child { width: 34%; color: var(--muted); font-weight: 600; }
   footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
   a { color: var(--blue); }
+  code { font-size: 14px; color: var(--gold); }
+  td ul { padding-left: 18px; }
+  td li { margin-bottom: 6px; }
 </style>
 </head>
 <body>
@@ -144,12 +147,25 @@
 
   <h2>▶ BUILD LOG</h2>
   <div class="panel">
+    <div class="pixel" style="font-size:10px;color:var(--muted);margin-bottom:12px;">BUILD 1 · INTENT &amp; PROTOTYPE · DUE NOV 9</div>
     <table>
-      <tr><td>What works</td><td class="todo">TODO</td></tr>
-      <tr><td>What I learned</td><td class="todo">TODO</td></tr>
-      <tr><td>What broke or changed</td><td class="todo">TODO</td></tr>
-      <tr><td>Costs</td><td class="todo">TODO (e.g. $0, free tiers only)</td></tr>
-      <tr><td>Hours</td><td class="todo">TODO</td></tr>
+      <tr><td>What works</td><td>
+        <ul>
+          <li>Repo created from the class template and published with GitHub Pages from <code>main/docs</code>. The site link is set in the repo's About section.</li>
+          <li>PRD v1 is live on this page: reachable user, before/after workflow, the five-step core workflow, three non-goals, and one open question.</li>
+          <li>No app code yet. The prototype slot above still shows a placeholder image.</li>
+        </ul>
+      </td></tr>
+      <tr><td>What I learned</td><td>How GitHub Pages deploys a static site straight from the <code>/docs</code> folder on <code>main</code>: every push to the branch triggers a new build, and the site updates within about a minute.</td></tr>
+      <tr><td>What broke or changed</td><td>
+        <ul>
+          <li>Rewrote the template page as a themed product page. That dropped the PostHog snippet placeholder and the per-build log entries; PostHog needs to come back in Build 2.</li>
+          <li>Decided v1 check-ins run on the honor system instead of photo proof or friend approval, and recorded that as the open question to watch.</li>
+          <li>The prototype screenshot is still a placeholder; the real prototype did not land in the repo this week.</li>
+        </ul>
+      </td></tr>
+      <tr><td>Costs</td><td>$0. Free tiers only (GitHub, GitHub Pages).</td></tr>
+      <tr><td>Hours</td><td>About 3 hours.</td></tr>
     </table>
   </div>
 
