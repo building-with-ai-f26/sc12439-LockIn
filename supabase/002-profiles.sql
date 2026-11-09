@@ -6,6 +6,9 @@
 -- your name, the 24x24 PNG game piece, and the builder choices so it can be
 -- edited later. One row per identity (anonymous auth user).
 
+-- players gain a copy of the builder options so evolved stages can be drawn.
+alter table players add column if not exists avatar_options jsonb;
+
 create table if not exists profiles (
   user_id         uuid primary key references auth.users(id) on delete cascade,
   name            text not null,

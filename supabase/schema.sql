@@ -21,6 +21,7 @@ create table if not exists players (
   user_id         uuid not null references auth.users(id),
   name            text not null,
   avatar_data_url text,                       -- 24x24 PNG game piece, copied from profiles at lock-in
+  avatar_options  jsonb,                      -- Sprite options, so the leaderboard can draw evolved stages
   goal_type       text not null default 'fitness' check (goal_type in ('fitness')),
   goal_per_week   int  not null check (goal_per_week between 1 and 7),
   goal_text       text not null,

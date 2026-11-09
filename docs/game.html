@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lock-In Party · Play</title>
-<meta name="description" content="Lock in a 90-day fitness goal with friends. Log workouts, level up, race around the board.">
+<meta name="description" content="Lock in a 90-day fitness goal with friends. Log workouts, keep your Lock-in Power high, evolve.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -46,7 +46,7 @@
   .avatar { width: 48px; height: 48px; image-rendering: pixelated; display: block; }
   .avatar.lg { width: 96px; height: 96px; }
   .step { font-size: 9px; color: var(--muted); margin-bottom: 10px; } .step span { color: var(--green); }
-  .piece-preview { width: 90px; height: 144px; image-rendering: pixelated; image-rendering: crisp-edges; background: #0c0b1d; border: 3px solid #000; box-shadow: 4px 4px 0 #000; flex: none; }
+  .piece.me { background: #0c0b1d; border: 3px solid #000; box-shadow: 4px 4px 0 #000; }
   .stat { text-align: center; }
   .stat .big { font-size: 22px; color: var(--gold); display: block; margin-bottom: 6px; }
   .stat .pixel { font-size: 8px; color: var(--muted); }
@@ -60,22 +60,33 @@
   .weeks i.hit { background: var(--green); }
   .weeks i.miss { background: var(--red); }
   .weeks i.current { outline: 2px solid var(--gold); }
-  .levelup { background: var(--gold); color: #000; border: 3px solid #000; box-shadow: 6px 6px 0 #000; padding: 14px; text-align: center; font-family: "Press Start 2P", monospace; font-size: 12px; margin-bottom: 16px; display: none; }
-  .levelup.show { display: block; animation: pop .35s ease-out; }
+  .banner { background: var(--gold); color: #000; border: 3px solid #000; box-shadow: 6px 6px 0 #000; padding: 14px; text-align: center; font-family: "Press Start 2P", monospace; font-size: 12px; line-height: 1.8; margin-bottom: 16px; display: none; }
+  .banner.show { display: block; animation: pop .35s ease-out; }
+  .banner.evolve { background: var(--blue); }
   @keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
 
-  table { width: 100%; border-collapse: collapse; }
-  td { padding: 8px 6px; border-bottom: 2px dashed var(--border); vertical-align: middle; }
-  td.n { font-family: "Press Start 2P", monospace; font-size: 10px; color: var(--gold); text-align: right; white-space: nowrap; }
-  tr.me td { background: rgba(255, 210, 63, .08); }
+  /* LP (Lock-in Power) health bar */
+  .lp { margin: 14px 0 4px; }
+  .lp .lp-head { display: flex; justify-content: space-between; font-family: "Press Start 2P", monospace; font-size: 10px; margin-bottom: 6px; }
+  .lp .lp-head b { color: var(--gold); }
+  .lp .lp-bar { height: 22px; border: 3px solid #000; background: #0c0b1d; box-shadow: 3px 3px 0 #000; }
+  .lp .lp-fill { height: 100%; width: 50%; background: var(--green); transition: width .4s steps(10); }
+  .lp .lp-fill.mid { background: var(--gold); }
+  .lp .lp-fill.low { background: var(--red); }
+  .lp.sm { margin: 6px 0 0; } .lp.sm .lp-bar { height: 12px; border-width: 2px; box-shadow: none; }
 
-  .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 6px; }
-  .cell { position: relative; aspect-ratio: 1; border: 2px solid var(--border); background: #0c0b1d; font-family: "Press Start 2P", monospace; font-size: 8px; color: var(--muted); padding: 3px; }
-  .cell.start { border-color: var(--green); color: var(--green); }
-  .cell.finish { border-color: var(--gold); color: var(--gold); }
-  .cell .pieces { position: absolute; inset: 13px 2px 2px; display: flex; flex-wrap: wrap; gap: 2px; align-content: flex-end; justify-content: center; }
-  .cell .pieces img { width: 24px; height: 24px; image-rendering: pixelated; }
-  .cell .pieces b { width: 20px; height: 20px; font-size: 8px; display: grid; place-items: center; background: var(--blue); color: #000; border: 1px solid #000; }
+  .piece { image-rendering: pixelated; image-rendering: crisp-edges; display: block; flex: none; }
+  .piece.me { width: 90px; height: 144px; }
+  .piece.row { width: 45px; height: 72px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 10px 6px; border-bottom: 2px dashed var(--border); vertical-align: middle; }
+  td.n { font-family: "Press Start 2P", monospace; font-size: 10px; color: var(--gold); text-align: right; white-space: nowrap; }
+  td.pc { width: 50px; }
+  tr.me td { background: rgba(255, 210, 63, .08); }
+  .stage { font-family: "Press Start 2P", monospace; font-size: 8px; padding: 3px 6px; border: 2px solid #000; background: var(--border); color: var(--ink); display: inline-block; vertical-align: middle; }
+  .stage.s2 { background: var(--blue); color: #000; } .stage.s3 { background: var(--gold); color: #000; }
+  .you { display: flex; gap: 12px; align-items: center; background: #0c0b1d; border: 2px solid var(--border); padding: 10px; margin-bottom: 16px; }
   footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
   [hidden] { display: none !important; }
 </style>
@@ -93,14 +104,22 @@
     </div>
   </section>
 
-  <!-- HOME: create or join -->
+  <!-- STEP 2: create or join a group -->
   <section data-view="home" hidden>
+    <div class="step pixel">STEP 2 OF 3 · <span>GROUP</span></div>
     <h1>LOCK-IN PARTY</h1>
-    <p class="muted">Lock in a 90-day fitness goal with your friends. Every workout you log counts toward the week. Hit the week, level up and move on the board.</p>
+    <p class="muted">Lock in a 90-day fitness goal with your friends. Hit your week to gain Lock-in Power and evolve. Miss it and you lose LP and can devolve. Highest LP on day 90 wins.</p>
+    <div class="you">
+      <canvas class="piece row" id="homePiece" width="15" height="24"></canvas>
+      <div>
+        <div class="pixel" style="font-size:11px;color:var(--gold)" id="homeName"></div>
+        <a href="#" id="homeEdit" class="pixel" style="font-size:8px">EDIT CHARACTER</a>
+      </div>
+    </div>
     <div class="grid">
       <div class="panel">
-        <h2>▶ START A CHALLENGE</h2>
-        <label class="f"><span class="pixel">CHALLENGE NAME</span><input type="text" id="cName" maxlength="40" placeholder="Winter Lock-In"></label>
+        <h2>▶ START A GROUP</h2>
+        <label class="f"><span class="pixel">GROUP NAME</span><input type="text" id="cName" maxlength="40" placeholder="Winter Lock-In"></label>
         <label class="f"><span class="pixel">STARTS ON</span><input type="date" id="cStart"></label>
         <button class="btn" id="createBtn" type="button">CREATE</button>
         <div class="msg" id="createMsg"></div>
@@ -116,32 +135,32 @@
 
   <!-- ONBOARDING STEP 1: build your character -->
   <section data-view="character" hidden>
-    <div class="step pixel">STEP 1 OF 2 · <span>CHARACTER</span></div>
+    <div class="step pixel">STEP 1 OF 3 · <span>CHARACTER</span></div>
     <h1>BUILD YOUR CHARACTER</h1>
-    <p class="muted">Joining <strong id="charChallenge"></strong>. This is your game piece on the board. Upload a photo to pick your colours, or hit RANDOM and tweak.</p>
+    <p class="muted" id="charIntro">This is you in the game. Upload a photo to pick your colours, or hit RANDOM and tweak. It evolves when you hit your goal three weeks in a row.</p>
     <div class="panel">
       <label class="f" style="max-width:360px"><span class="pixel">YOUR NAME</span><input type="text" id="pName" maxlength="16" placeholder="Sam"></label>
       <div id="builder"></div>
       <div class="row" style="margin-top:18px;justify-content:space-between">
         <div class="msg" id="charMsg" style="margin:0"></div>
-        <button class="btn" id="nextBtn" type="button">NEXT: SET YOUR GOAL ▶</button>
+        <button class="btn" id="nextBtn" type="button">SAVE &amp; CONTINUE ▶</button>
       </div>
     </div>
   </section>
 
   <!-- ONBOARDING STEP 2: lock in a goal -->
   <section data-view="intake" hidden>
-    <div class="step pixel">STEP 2 OF 2 · <span>GOAL</span></div>
+    <div class="step pixel">STEP 3 OF 3 · <span>GOAL</span></div>
     <h1>LOCK IN YOUR GOAL</h1>
     <p class="muted">Joining <strong id="intakeChallenge"></strong>. Write it once. It cannot be changed after you lock in.</p>
     <div class="grid">
       <div class="panel">
         <h2>▶ YOUR PIECE</h2>
         <div class="row" style="align-items:flex-start">
-          <canvas class="piece-preview" id="piecePreview" width="15" height="24"></canvas>
+          <canvas class="piece me" id="piecePreview" width="15" height="24"></canvas>
           <div>
             <div class="pixel" style="font-size:14px;color:var(--gold);margin-bottom:6px" id="pieceName"></div>
-            <p class="muted" style="font-size:13px">Shown at 2× in standings and 1× on the board.</p>
+            <p class="muted" style="font-size:13px">Stage 1, ROOKIE. Three hit weeks in a row and it evolves.</p>
             <button class="btn alt" id="editCharBtn" type="button">◀ CHANGE CHARACTER</button>
           </div>
         </div>
@@ -159,14 +178,14 @@
             <option value="7">7 WORKOUTS / WEEK</option>
           </select></label>
         <p class="muted" id="goalPreview"></p>
-        <p class="muted" style="font-size:13px">Rules: hit the week, +1 level and +3 spaces. Miss it, -1 space. Three hit weeks in a row adds a bonus space each week. First to FINISH (40) wins. 13 weeks.</p>
+        <p class="muted" style="font-size:13px">Rules: everyone starts at 50 LP. Hit the week, +10 LP. Miss it, -15 LP. Three hit weeks in a row evolves you, seven more makes you LOCKED IN. Break a streak or hit 0 LP and you devolve. Highest LP after 13 weeks wins.</p>
         <button class="btn green" id="lockBtn" type="button">LOCK IT IN</button>
         <div class="msg" id="lockMsg"></div>
       </div>
     </div>
   </section>
 
-  <!-- PLAY: dashboard, standings, board -->
+  <!-- PLAY: my card, log, leaderboard -->
   <section data-view="play" hidden>
     <div class="row" style="justify-content:space-between;align-items:flex-start">
       <div>
@@ -178,21 +197,27 @@
         <button class="btn alt" id="refreshBtn" type="button">REFRESH</button>
       </div>
     </div>
-    <div class="levelup" id="levelup"></div>
+    <div class="banner" id="banner"></div>
     <div class="grid">
       <div>
         <div class="panel">
-          <div class="row">
-            <img class="avatar lg" id="meAvatar" alt="">
-            <div>
+          <div class="row" style="align-items:flex-start">
+            <canvas class="piece me" id="mePiece" width="15" height="24"></canvas>
+            <div style="flex:1;min-width:180px">
               <div class="pixel" style="font-size:14px;color:var(--gold)" id="meName"></div>
+              <div style="margin:6px 0"><span class="stage" id="meStage"></span></div>
               <div class="muted" id="meGoal"></div>
+              <div class="lp">
+                <div class="lp-head"><span>LP · LOCK-IN POWER</span><b id="meLP">50</b></div>
+                <div class="lp-bar"><div class="lp-fill" id="meLPFill"></div></div>
+              </div>
+              <div class="muted" style="font-size:13px" id="evolveMsg"></div>
             </div>
           </div>
           <div class="stats">
-            <div class="stat"><span class="big" id="sLevel">1</span><span class="pixel">LEVEL</span></div>
-            <div class="stat"><span class="big" id="sPos">0</span><span class="pixel">SPACE</span></div>
+            <div class="stat"><span class="big" id="sStage">1</span><span class="pixel">STAGE</span></div>
             <div class="stat"><span class="big" id="sStreak">0</span><span class="pixel">STREAK</span></div>
+            <div class="stat"><span class="big" id="sHits">0</span><span class="pixel">WEEKS HIT</span></div>
             <div class="stat"><span class="big" id="sDays">90</span><span class="pixel">DAYS LEFT</span></div>
           </div>
           <div class="pixel" style="font-size:10px" id="weekLabel"></div>
@@ -213,18 +238,15 @@
       </div>
       <div>
         <div class="panel">
-          <h2>▶ STANDINGS</h2>
+          <h2>▶ LEADERBOARD · WHO IS WINNING</h2>
           <table id="standings"></table>
-        </div>
-        <div class="panel">
-          <h2>▶ THE BOARD</h2>
-          <div class="board" id="board"></div>
+          <p class="muted" style="font-size:13px;margin-top:12px">Ranked by LP, then stage, then streak. Highest LP on day 90 takes it.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <footer>Build 2 · fitness goals only · <a href="prototype.html">8-Bit Me</a> · <a href="#" id="signout">new identity</a></footer>
+  <footer>Build 2 · fitness goals only · <a href="character.html">character builder</a> · <a href="#" id="signout">new identity</a></footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>

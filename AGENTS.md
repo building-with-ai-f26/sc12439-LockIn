@@ -3,7 +3,7 @@
 > Give this file to your coding agent and check that it is using these instructions. Keep the stack, commands, and ground rules current.
 
 ## 1. Project Overview
-- **What this repo builds:** Lock-In Party, an 8-bit party board game where a friend group locks in 90-day goals and weekly check-ins move their pieces around a board. Build 1 ships the product page plus a throwaway prototype, 8-Bit Me, that turns a photo into a pixel-art game piece.
+- **What this repo builds:** Lock-In Party, an 8-bit party game where a friend group locks in 90-day goals, logs workouts, and evolves their characters Pokémon-style: hit weeks raise Lock-in Power (LP), streaks evolve you, misses drain LP and can devolve you. Highest LP on day 90 wins. Build 1 ships the product page plus a throwaway prototype, 8-Bit Me, that turns a photo into a pixel-art game piece.
 - **Primary user & core workflow:** [See the living PRD in `docs/index.html`]
 - **Tech stack:** Static HTML/CSS/JS in `docs/`, published with GitHub Pages. Supabase (Postgres + anonymous auth + RLS) as the shared backend, called from the browser with supabase-js. Node 23 for tests.
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lock-In Party</title>
-<meta name="description" content="An 8-bit party board game for 90-day goals with friends.">
+<meta name="description" content="An 8-bit party game for 90-day goals with friends: build a character, lock in a goal, evolve with every streak.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -71,7 +71,7 @@
   <header>
     <div class="pixel" style="font-size:10px;color:var(--muted);margin-bottom:12px;">PRODUCT PAGE · PRD v1</div>
     <h1>LOCK-IN PARTY</h1>
-    <p class="tag">An 8-bit party board game where friends lock in a 90-day goal, check in each week, and race each other around the board.</p>
+    <p class="tag">An 8-bit party game where friends lock in a 90-day goal, log their workouts, and evolve their characters by keeping their streaks and Lock-in Power alive.</p>
     <div class="chips">
       <span class="chip">90 DAYS</span>
       <span class="chip">FRIENDS ONLY</span>
@@ -83,7 +83,7 @@
   <h2>▶ THE PROBLEM</h2>
   <div class="panel">
     <p>Friend groups start challenges all the time ("let's all work out 3x a week"), but they live in a group chat. After a week or two the messages stop, nobody knows who's still going, and there's no fun reason to keep showing up.</p>
-    <p>Lock-In Party turns a shared goal into a game: every check-in moves your piece on a retro board, so progress is visible, a little competitive, and actually fun to come back to.</p>
+    <p>Lock-In Party turns a shared goal into a game: every hit week raises your Lock-in Power and every streak evolves your character, so progress is visible, a little competitive, and actually fun to come back to.</p>
   </div>
 
   <h2>▶ REACHABLE USER</h2>
@@ -109,7 +109,7 @@
       <ul>
         <li>The group creates one 90-day challenge.</li>
         <li>Each person locks in a specific goal on day 1.</li>
-        <li>Weekly check-ins move your piece around the board.</li>
+        <li>Hit weeks raise your Lock-in Power and evolve your character; misses drain it.</li>
         <li>Everyone can see who's ahead, who's slipping, and what's at stake.</li>
       </ul>
     </div>
@@ -118,11 +118,11 @@
   <h2>▶ CORE WORKFLOW</h2>
   <div class="panel">
     <ol class="steps">
-      <li><strong>Join a challenge.</strong> Open the group's board from an invite link.</li>
+      <li><strong>Build your character, then join a group.</strong> Make your 8-bit self once, then create a group or open an invite link.</li>
       <li><strong>Lock in your goal.</strong> Write it once, specifically (e.g. "Work out 3x per week" or "Read 20 pages a day"). It can't be edited after lock-in.</li>
       <li><strong>Check in.</strong> Each week, report whether you hit your goal.</li>
-      <li><strong>Move on the board.</strong> Hitting your goal moves your piece forward; missing it costs you spaces.</li>
-      <li><strong>See the standings.</strong> The board shows everyone's position and streaks through day 90.</li>
+      <li><strong>Keep your LP up.</strong> Hitting your goal adds Lock-in Power; missing it drains LP and can devolve you.</li>
+      <li><strong>See who is winning.</strong> The leaderboard shows everyone's evolution stage, LP and streak through day 90.</li>
     </ol>
   </div>
 
@@ -130,7 +130,7 @@
   <div class="panel">
     <ul style="list-style:none;padding:0;">
       <li><span class="no">✕</span><strong>No Whoop or wearable integration.</strong> Check-ins are self-reported for now. Auto-verifying fitness goals through Whoop is a later build.</li>
-      <li><span class="no">✕</span><strong>No minigames.</strong> Moving around the board is the whole game in v1; party-style minigames come later.</li>
+      <li><span class="no">✕</span><strong>No minigames.</strong> LP, streaks and evolution are the whole game in v1; party-style minigames come later.</li>
       <li><span class="no">✕</span><strong>No public matchmaking.</strong> Invite-only friend groups. No strangers, no global leaderboards.</li>
     </ul>
   </div>
@@ -142,10 +142,11 @@
 
   <h2>▶ PLAY (BUILD 2)</h2>
   <div class="panel">
-    <p><strong>The game loop is live.</strong> Start a challenge, send friends the invite link, and each person locks in a fitness goal of 1 to 7 workouts per week. Log each workout as it happens. Hit the week and you level up and move 3 spaces. Miss it and you slide back 1. Three hit weeks in a row earn a bonus space. First to space 40 wins.</p>
+    <p><strong>The game loop is live, Pokémon style.</strong> Everyone starts at 50 LP (Lock-in Power). Lock in 1 to 7 workouts per week and log each one. Hit the week, +10 LP. Miss it, -15 LP. Three hit weeks in a row evolves your character to RISING, seven to LOCKED IN. Break the streak or hit 0 LP and you devolve. Highest LP on day 90 wins.</p>
     <p style="margin-bottom:16px;"><a class="chip" style="text-decoration:none;color:var(--gold);" href="game.html">▶ START OR JOIN A CHALLENGE</a> <a class="chip" style="text-decoration:none;color:var(--gold);" href="character.html">▶ BUILD YOUR CHARACTER</a></p>
     <img class="shot" src="images/characters.png" alt="Seven 8-bit characters made with the character builder: different hair, skin tones, jackets, hoodies, tees, pants, shorts and skirts" style="min-height:0;image-rendering:pixelated;">
-    <p style="margin-top:12px;">Onboarding is two steps. Step 1: build your character, a full-body 8-bit game piece with your choice of hair, face, glasses, top, bottoms, shoes and colours. Upload a photo and it suggests your skin and hair colour. Step 2: see your piece next to the goal you are about to lock in. The piece then appears on the board and in the standings.</p>
+    <img class="shot" src="images/evolution.png" alt="One 8-bit character at three evolution stages: plain, with a blue aura, and with a gold aura and richer colours" style="min-height:0;image-rendering:pixelated;margin-top:12px;">
+    <p style="margin-top:12px;">Onboarding is three steps. Build your character first: a full-body 8-bit sprite with your choice of hair, face, glasses, top, bottoms, shoes and colours, and a photo can suggest your skin and hair tone. Then create or join a group. Then lock in your goal with your piece beside it. As your streak grows the same character gets richer colours and an aura.</p>
     <p class="todo">TODO: add a screenshot of a real challenge once the group has a week of check-ins.</p>
   </div>
 
@@ -184,9 +185,9 @@
     <table>
       <tr><td>What works</td><td>
         <ul>
-          <li>Core workflow end to end at <a href="game.html">game.html</a>: create or join a challenge by invite code, build your 8-bit character (step 1), lock in a fitness goal (step 2), log workouts, level up, see standings and the board.</li>
+          <li>Core workflow end to end at <a href="game.html">game.html</a>: build your 8-bit character, create or join a group by invite code, lock in a fitness goal, log workouts, gain LP, evolve, and see the leaderboard.</li>
           <li>Shared backend on Supabase free tier. Each phone signs in anonymously; Row Level Security means you can only write your own workouts. Verified with a two-identity smoke test against the live project.</li>
-          <li>Game rules are pure functions covered by 10 Node tests; 17 tests total pass.</li>
+          <li>Game rules are pure functions covered by 16 Node tests; 34 tests total pass.</li>
         </ul>
       </td></tr>
       <tr><td>What I learned</td><td class="todo">TODO</td></tr>
@@ -194,7 +195,8 @@
         <ul>
           <li>Chose Supabase over localStorage so friends share one board from GitHub Pages. Tradeoff: identity is per device, so switching phones means a new player.</li>
           <li>Every workout is its own row with a <code>source</code> column so a Whoop sync or an MCP tool can feed the same table later without touching the rules.</li>
-          <li>Hit weeks now level you up the moment you hit the goal, not at week's end, for faster feedback.</li>
+          <li>Hit weeks score the moment you hit the goal, not at week's end, for faster feedback.</li>
+          <li>Replaced the race board with a Pokémon-style loop after playing the first version: LP as a health bar, evolution at 3 and 7 hit weeks in a row, devolve on a broken streak. One stat to protect reads better on a phone than 40 squares, and evolution gives streaks a visible payoff. Starting LP 50 and faint-reset 25 are first guesses to tune with real players.</li>
           <li>Replaced the pixelated-photo avatar with a hand-drawn sprite builder after seeing the reference style I actually wanted: flat colours, full body, 15×24 grid. A photo now only suggests colours. Still $0 and browser-only; an AI redraw remains a later experiment.</li>
           <li>PostHog still not installed. Next.</li>
         </ul>
