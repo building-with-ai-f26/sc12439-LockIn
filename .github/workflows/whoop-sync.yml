@@ -1,0 +1,36 @@
+name: Whoop nightly sync
+
+# Fires at 11:59 PM in New York all year. GitHub cron is UTC only, so we
+# schedule both the EDT and EST instants and let the script's timezone
+# guard skip the one that is 10:59 PM or 12:59 AM.
+on:
+  schedule:
+    - cron: "59 3 * * *"   # 23:59 EDT (Mar–Nov)
+    - cron: "59 4 * * *"   # 23:59 EST (Nov–Mar)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Run now even though it is not 11 PM Eastern"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Pull Whoop workouts into Supabase
+        run: node scripts/whoop-sync.mjs ${{ github.event_name == 'workflow_dispatch' && inputs.force && '--force' || '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          WHOOP_CLIENT_ID: ${{ secrets.WHOOP_CLIENT_ID }}
+          WHOOP_CLIENT_SECRET: ${{ secrets.WHOOP_CLIENT_SECRET }}
+          WHOOP_MIN_MINUTES: ${{ vars.WHOOP_MIN_MINUTES }}

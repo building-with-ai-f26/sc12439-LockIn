@@ -142,7 +142,7 @@
 
   <h2>▶ PLAY (BUILD 2)</h2>
   <div class="panel">
-    <p><strong>The game loop is live, Pokémon style.</strong> Everyone starts at 50 LP (Lock-in Power). Lock in 1 to 7 workouts per week and log each one. Hit the week, +10 LP. Miss it, -15 LP. Three hit weeks in a row evolves your character to RISING, seven to LOCKED IN. Break the streak or hit 0 LP and you devolve. Highest LP on day 90 wins.</p>
+    <p><strong>The game loop is live, Pokémon style.</strong> Everyone starts at 50 LP (Lock-in Power). Lock in 1 to 7 workouts per week and log each one. Hit the week, +10 LP. Miss it, -15 LP. Three hit weeks in a row evolves your character to RISING, seven to LOCKED IN. Break the streak or hit 0 LP and you devolve. Highest LP on day 90 wins. Connect a Whoop and your workouts log themselves every night at 11:59 PM.</p>
     <p style="margin-bottom:16px;"><a class="chip" style="text-decoration:none;color:var(--gold);" href="game.html">▶ START OR JOIN A CHALLENGE</a> <a class="chip" style="text-decoration:none;color:var(--gold);" href="character.html">▶ BUILD YOUR CHARACTER</a></p>
     <img class="shot" src="images/characters.png" alt="Seven 8-bit characters made with the character builder: different hair, skin tones, jackets, hoodies, tees, pants, shorts and skirts" style="min-height:0;image-rendering:pixelated;">
     <img class="shot" src="images/evolution.png" alt="One 8-bit character at three evolution stages: plain, with a blue aura, and with a gold aura and richer colours" style="min-height:0;image-rendering:pixelated;margin-top:12px;">
@@ -198,6 +198,7 @@
           <li>Hit weeks score the moment you hit the goal, not at week's end, for faster feedback.</li>
           <li>Replaced the race board with a Pokémon-style loop after playing the first version: LP as a health bar, evolution at 3 and 7 hit weeks in a row, devolve on a broken streak. One stat to protect reads better on a phone than 40 squares, and evolution gives streaks a visible payoff. Starting LP 50 and faint-reset 25 are first guesses to tune with real players.</li>
           <li>Replaced the pixelated-photo avatar with a hand-drawn sprite builder after seeing the reference style I actually wanted: flat colours, full body, 15×24 grid. A photo now only suggests colours. Still $0 and browser-only; an AI redraw remains a later experiment.</li>
+          <li>Whoop sync shipped as a nightly GitHub Action at 11:59 PM Eastern: pulls the last 3 days of workouts over 20 minutes and logs them with <code>source = 'whoop'</code>, deduped by Whoop id. Tokens live in a service-role-only table, never in the repo. Setup in <a href="WHOOP.md">docs/WHOOP.md</a>.</li>
           <li>PostHog still not installed. Next.</li>
         </ul>
       </td></tr>

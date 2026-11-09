@@ -187,7 +187,8 @@
     $("meName").textContent = me.name.toUpperCase();
     $("meStage").textContent = "STAGE " + s.stage + " · " + s.stageName;
     $("meStage").className = "stage s" + s.stage;
-    $("meGoal").textContent = me.goal_text + " · " + s.totalWorkouts + " workouts logged";
+    var fromWhoop = workouts.filter(function (x) { return x.player_id === me.id && x.source === "whoop"; }).length;
+    $("meGoal").textContent = me.goal_text + " · " + s.totalWorkouts + " workouts logged" + (fromWhoop ? " (" + fromWhoop + " from Whoop)" : "");
     $("meLP").textContent = s.lp + " / " + GameRules.RULES.lpMax;
     $("meLPFill").style.width = (s.lp / GameRules.RULES.lpMax * 100) + "%";
     $("meLPFill").className = "lp-fill " + lpClass(s.lp);

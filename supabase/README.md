@@ -16,6 +16,6 @@ Run `supabase/002-profiles.sql` in the SQL editor once. It adds the `profiles` t
 
 No. Supabase designs the anon key to ship in browser code. What protects the data is Row Level Security, which `schema.sql` turns on: anyone can read the board, but you can only insert or delete workouts for your own player row. Never put the **service_role** key anywhere in this repo.
 
-## Later: Whoop or MCP
+## Whoop sync
 
-Insert into `workouts` with `source = 'whoop'` or `'mcp'`. The game rules only count rows per week, so nothing else changes.
+Run `supabase/003-whoop.sql` once, then follow `docs/WHOOP.md`. A nightly GitHub Action inserts into `workouts` with `source = 'whoop'` and the Whoop workout id in `external_id`. The game rules only count rows per week, so nothing else changes. Any future source (an MCP tool, another wearable) should do the same.

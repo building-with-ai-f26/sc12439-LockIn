@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lock-In Party · Whoop connected</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #14122b; --panel: #1f1c42; --ink: #f4f1ff; --muted: #b7b0e0; --gold: #ffd23f; --green: #3ddc84; --red: #ff5c7a; --blue: #4cc9f0; --border: #3a3575; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 "Inter", system-ui, sans-serif; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 16px 80px; }
+  h1, .pixel, .btn { font-family: "Press Start 2P", monospace; }
+  h1 { font-size: clamp(16px, 4vw, 24px); line-height: 1.5; color: var(--gold); text-shadow: 4px 4px 0 #000; margin: 0 0 16px; }
+  .panel { background: var(--panel); border: 3px solid var(--border); box-shadow: 6px 6px 0 #000; padding: 20px; }
+  code.big { display: block; background: #0c0b1d; border: 2px solid var(--border); padding: 14px; font-size: 15px; word-break: break-all; color: var(--green); margin: 12px 0; user-select: all; }
+  .btn { font-size: 10px; padding: 12px 14px; border: 3px solid #000; box-shadow: 4px 4px 0 #000; background: var(--gold); color: #000; cursor: pointer; }
+  .muted { color: var(--muted); } .err { color: var(--red); }
+  a { color: var(--blue); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title">WHOOP CONNECTED</h1>
+  <div class="panel">
+    <p id="lead">Almost done. Copy this code and paste it back into the terminal that is running <code>whoop-connect</code>, or send it to whoever is connecting you.</p>
+    <code class="big" id="code">…</code>
+    <button class="btn" id="copy" type="button">COPY CODE</button>
+    <p class="muted" style="margin-top:16px;font-size:13px">The code works once and expires in a few minutes. Nothing about your Whoop account is stored on this page.</p>
+  </div>
+  <p class="muted" style="margin-top:20px"><a href="./">◀ Back to Lock-In Party</a></p>
+</div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var code = q.get("code"), err = q.get("error"), desc = q.get("error_description");
+  var el = document.getElementById("code");
+  if (err || !code) {
+    document.getElementById("title").textContent = "WHOOP SAID NO";
+    document.getElementById("lead").innerHTML = '<span class="err">' + (desc || err || "No code in the URL.") + "</span> Close this tab and run the connect script again.";
+    el.textContent = location.href; document.getElementById("copy").hidden = true; return;
+  }
+  el.textContent = code;
+  document.getElementById("copy").addEventListener("click", function () {
+    navigator.clipboard.writeText(code).then(function () { this.textContent = "COPIED ✓"; }.bind(this), function () { el.focus(); });
+  });
+  // Don't leave the code sitting in browser history longer than needed.
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+})();
+</script>
+</body>
+</html>
