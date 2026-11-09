@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lock-In Party · Privacy</title>
+<meta name="description" content="What Lock-In Party stores, why, and how to delete it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #14122b; --panel: #1f1c42; --ink: #f4f1ff; --muted: #b7b0e0; --gold: #ffd23f; --blue: #4cc9f0; --border: #3a3575; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.65 "Inter", system-ui, sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 16px 80px; }
+  h1, h2, .pixel { font-family: "Press Start 2P", monospace; }
+  h1 { font-size: clamp(16px, 4vw, 24px); line-height: 1.5; color: var(--gold); text-shadow: 4px 4px 0 #000; margin: 0 0 8px; }
+  h2 { font-size: 11px; color: var(--blue); margin: 24px 0 10px; letter-spacing: 1px; }
+  .panel { background: var(--panel); border: 3px solid var(--border); box-shadow: 6px 6px 0 #000; padding: 20px 24px; }
+  p, li { margin: 0 0 10px; } ul { padding-left: 20px; }
+  .muted { color: var(--muted); } a { color: var(--blue); }
+  .back { font-size: 10px; margin-bottom: 14px; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back pixel" href="./">◀ LOCK-IN PARTY</a>
+  <h1>PRIVACY</h1>
+  <p class="muted">Last updated 9 November 2026. Lock-In Party is a small, invite-only game built for a friend group as a university course project. It is not a commercial product.</p>
+
+  <div class="panel">
+    <h2>▶ WHAT WE STORE</h2>
+    <ul>
+      <li><strong>Your character and name.</strong> The 8-bit character you build and the display name you type.</li>
+      <li><strong>Your goal and workouts.</strong> The weekly goal you lock in, and one row per workout: when it happened, where it came from (tapped in the game or synced from Whoop), and a short note such as the sport and duration.</li>
+      <li><strong>An anonymous identity.</strong> Each browser gets a random anonymous account. We do not collect your email, password or real name.</li>
+    </ul>
+
+    <h2>▶ WHOOP DATA</h2>
+    <p>If you connect a Whoop account, we ask Whoop for permission to read your workouts and basic profile. Once a night we fetch your workouts from the last three days and store, for each one longer than 20 minutes: its Whoop id, start time, sport, duration and strain score. We do not read sleep, recovery, heart-rate streams, body measurements or location.</p>
+    <p>The tokens Whoop gives us are stored in a locked table that only the nightly sync job can read. They are never sent to the browser or shared with anyone.</p>
+
+    <h2>▶ WHO CAN SEE IT</h2>
+    <p>Everyone in your group sees your name, character, goal, weekly progress, Lock-in Power, streak and workout counts. That is the point of the game. Nobody outside the group can find it without the invite code. Nothing is sold, shared with advertisers or used to train anything.</p>
+
+    <h2>▶ WHERE IT LIVES</h2>
+    <p>Data is stored in a <a href="https://supabase.com">Supabase</a> project. The site is served by GitHub Pages. The nightly Whoop sync runs on GitHub Actions.</p>
+
+    <h2>▶ DELETING IT</h2>
+    <p>Ask the group owner to remove you and your Whoop connection and it is deleted immediately. You can also revoke Lock-In Party in your Whoop app settings at any time, which stops all future syncing. Everything is deleted when the challenge group is deleted.</p>
+
+    <h2>▶ CONTACT</h2>
+    <p>Questions go to the group owner who sent you the invite, or open an issue on the <a href="https://github.com/building-with-ai-f26/sc12439-LockIn">GitHub repository</a>.</p>
+  </div>
+</div>
+</body>
+</html>
