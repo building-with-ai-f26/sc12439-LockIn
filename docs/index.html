@@ -76,6 +76,7 @@
       <span class="chip">90 DAYS</span>
       <span class="chip">FRIENDS ONLY</span>
       <span class="chip">ANY GOAL</span>
+      <a class="chip" style="text-decoration:none;color:var(--gold);" href="game.html">▶ PLAY</a>
     </div>
   </header>
 
@@ -139,6 +140,13 @@
     <p><strong>How do we verify non-fitness goals?</strong> Options: honor system, photo proof, or a friend approving each check-in. v1 uses the honor system; I'll watch whether my friends trust it.</p>
   </div>
 
+  <h2>▶ PLAY (BUILD 2)</h2>
+  <div class="panel">
+    <p><strong>The game loop is live.</strong> Start a challenge, send friends the invite link, and each person locks in a fitness goal of 1 to 7 workouts per week. Log each workout as it happens. Hit the week and you level up and move 3 spaces. Miss it and you slide back 1. Three hit weeks in a row earn a bonus space. First to space 40 wins.</p>
+    <p style="margin-bottom:16px;"><a class="chip" style="text-decoration:none;color:var(--gold);" href="game.html">▶ START OR JOIN A CHALLENGE</a></p>
+    <p class="todo">TODO: add a screenshot of a real challenge once the group has a week of check-ins.</p>
+  </div>
+
   <h2>▶ PROTOTYPE</h2>
   <div class="panel">
     <p><strong>8-Bit Me.</strong> Upload a photo and it becomes your game piece for the board: a pixel-art character snapped to a retro palette. Runs entirely in the browser, nothing is uploaded.</p>
@@ -167,6 +175,29 @@
       </td></tr>
       <tr><td>Costs</td><td>$0. Free tiers only (GitHub, GitHub Pages).</td></tr>
       <tr><td>Hours</td><td>About 3 hours.</td></tr>
+    </table>
+  </div>
+  <div class="panel">
+    <div class="pixel" style="font-size:10px;color:var(--muted);margin-bottom:12px;">BUILD 2 · SMALLEST LOCAL VERSION · DUE NOV 16</div>
+    <table>
+      <tr><td>What works</td><td>
+        <ul>
+          <li>Core workflow end to end at <a href="game.html">game.html</a>: create or join a challenge by invite code, lock in a fitness goal, log workouts, level up, see standings and the board.</li>
+          <li>Shared backend on Supabase free tier. Each phone signs in anonymously; Row Level Security means you can only write your own workouts. Verified with a two-identity smoke test against the live project.</li>
+          <li>Game rules are pure functions covered by 10 Node tests; 17 tests total pass.</li>
+        </ul>
+      </td></tr>
+      <tr><td>What I learned</td><td class="todo">TODO</td></tr>
+      <tr><td>What broke or changed</td><td>
+        <ul>
+          <li>Chose Supabase over localStorage so friends share one board from GitHub Pages. Tradeoff: identity is per device, so switching phones means a new player.</li>
+          <li>Every workout is its own row with a <code>source</code> column so a Whoop sync or an MCP tool can feed the same table later without touching the rules.</li>
+          <li>Hit weeks now level you up the moment you hit the goal, not at week's end, for faster feedback.</li>
+          <li>PostHog still not installed. Next.</li>
+        </ul>
+      </td></tr>
+      <tr><td>Costs</td><td class="todo">TODO</td></tr>
+      <tr><td>Hours</td><td class="todo">TODO</td></tr>
     </table>
   </div>
 
