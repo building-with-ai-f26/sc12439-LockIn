@@ -8,6 +8,10 @@ The game page (`docs/game.html`) talks to Supabase straight from the browser.
 4. Open **Project Settings → API** (or **Connect** at the top). Copy the **Project URL** and the **anon public** key.
 5. Paste both into `docs/supabase-config.js`, commit, push. GitHub Pages redeploys and the game is live.
 
+## Already set up before the Pokémon update?
+
+Run `supabase/002-profiles.sql` in the SQL editor once. It adds the `profiles` table that stores your character before you join a group. Existing challenges, players and workouts are untouched.
+
 ## Is the anon key a secret?
 
 No. Supabase designs the anon key to ship in browser code. What protects the data is Row Level Security, which `schema.sql` turns on: anyone can read the board, but you can only insert or delete workouts for your own player row. Never put the **service_role** key anywhere in this repo.

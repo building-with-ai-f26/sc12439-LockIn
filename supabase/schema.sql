@@ -20,7 +20,7 @@ create table if not exists players (
   challenge_id    uuid not null references challenges(id) on delete cascade,
   user_id         uuid not null references auth.users(id),
   name            text not null,
-  avatar_data_url text,                       -- 32x32 PNG from 8-Bit Me, as a data URL
+  avatar_data_url text,                       -- 24x24 PNG game piece, copied from profiles at lock-in
   goal_type       text not null default 'fitness' check (goal_type in ('fitness')),
   goal_per_week   int  not null check (goal_per_week between 1 and 7),
   goal_text       text not null,
@@ -42,7 +42,19 @@ create table if not exists workouts (
 create index if not exists workouts_player_idx on workouts (player_id, happened_at);
 create index if not exists players_challenge_idx on players (challenge_id);
 
+-- Your character, built once before you join any group. One row per identity.
+-- (Same as supabase/002-profiles.sql, kept there for projects that already ran v1.)
+create table if not exists profiles (
+  user_id         uuid primary key references auth.users(id) on delete cascade,
+  name            text not null,
+  avatar_data_url text not null,           -- 24x24 PNG as a data URL
+  avatar_options  jsonb,                   -- Sprite options, so the builder can reload them
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
 -- Row Level Security. The anon key is public, so these rules are the real gate.
+alter table profiles   enable row level security;
 alter table challenges enable row level security;
 alter table players    enable row level security;
 alter table workouts   enable row level security;
@@ -53,6 +65,13 @@ drop policy if exists "challenges read"   on challenges;
 drop policy if exists "challenges insert" on challenges;
 create policy "challenges read"   on challenges for select to authenticated using (true);
 create policy "challenges insert" on challenges for insert to authenticated with check (created_by = auth.uid());
+
+drop policy if exists "profiles read"   on profiles;
+drop policy if exists "profiles insert" on profiles;
+drop policy if exists "profiles update" on profiles;
+create policy "profiles read"   on profiles for select to authenticated using (true);
+create policy "profiles insert" on profiles for insert to authenticated with check (user_id = auth.uid());
+create policy "profiles update" on profiles for update to authenticated using (user_id = auth.uid());
 
 drop policy if exists "players read"   on players;
 drop policy if exists "players insert" on players;
@@ -81,3 +100,8 @@ begin
 end $$;
 drop trigger if exists players_lock_goal_trg on players;
 create trigger players_lock_goal_trg before update on players for each row execute function players_lock_goal();
+
+create or replace function profiles_touch() returns trigger language plpgsql as $$
+begin new.updated_at = now(); return new; end $$;
+drop trigger if exists profiles_touch_trg on profiles;
+create trigger profiles_touch_trg before update on profiles for each row execute function profiles_touch();
