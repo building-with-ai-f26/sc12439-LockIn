@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lock-In Party · Character Builder</title>
+<meta name="description" content="Build your 8-bit game piece for Lock-In Party.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #14122b; --panel: #1f1c42; --ink: #f4f1ff; --muted: #b7b0e0; --gold: #ffd23f; --green: #3ddc84; --red: #ff5c7a; --blue: #4cc9f0; --border: #3a3575; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 "Inter", system-ui, sans-serif; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 40px 16px 80px; }
+  h1, .pixel, .btn { font-family: "Press Start 2P", monospace; }
+  h1 { font-size: clamp(20px, 4.5vw, 30px); line-height: 1.4; color: var(--gold); margin: 0 0 12px; text-shadow: 4px 4px 0 #000; }
+  .tag { color: var(--muted); margin-bottom: 20px; }
+  a { color: var(--blue); }
+  .back { font-size: 10px; margin-bottom: 14px; display: inline-block; }
+  .panel { background: var(--panel); border: 3px solid var(--border); box-shadow: 6px 6px 0 #000; padding: 20px; margin-bottom: 16px; }
+  .btn { font-size: 10px; padding: 12px 14px; border: 3px solid #000; box-shadow: 4px 4px 0 #000; background: var(--gold); color: #000; cursor: pointer; text-decoration: none; display: inline-block; line-height: 1; }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+  input[type=text] { background: #0c0b1d; color: var(--ink); border: 2px solid var(--border); padding: 10px; font: inherit; width: 200px; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back pixel" href="./">◀ LOCK-IN PARTY</a>
+  <h1>BUILD YOUR 8-BIT ME</h1>
+  <p class="tag">Pick your look. Upload a photo if you want it to guess your skin and hair colour. Nothing leaves your browser.</p>
+  <div class="panel">
+    <div id="builder"></div>
+    <div class="row">
+      <input type="text" id="name" maxlength="16" placeholder="NAME FOR THE FILE">
+      <a class="btn" id="download" download="8bit-me.png" href="#">DOWNLOAD PNG</a>
+      <a class="btn" style="background:var(--green)" href="game.html">USE IT IN THE GAME ▶</a>
+    </div>
+    <p class="tag" style="margin:12px 0 0;font-size:13px">In the game, this same builder appears when you lock in your goal, so your piece shows up on the board and in the standings.</p>
+  </div>
+  <footer>Build 2 · <a href="prototype.html">old photo pixelator</a> · <a href="https://github.com/building-with-ai-f26/sc12439-LockIn">source</a></footer>
+</div>
+<script src="sprite.js"></script>
+<script src="character-ui.js"></script>
+<script>
+(function () {
+  var api = CharacterUI.mount(document.getElementById("builder"), { onChange: refreshDownload });
+  function refreshDownload() {
+    if (!api) return;   // first onChange fires during mount, before api exists
+    var a = document.getElementById("download");
+    a.href = api.getDataURL(16, false);
+    var n = document.getElementById("name").value.trim();
+    a.download = (n ? n.replace(/[^a-z0-9]+/gi, "-").toLowerCase() : "8bit-me") + ".png";
+  }
+  document.getElementById("name").addEventListener("input", refreshDownload);
+  refreshDownload();
+  if (/[?&]demo=1/.test(location.search)) api.setOptions({ hair: "pompadour", hairColor: "#1A1A1A", skin: "#FFE0BD", glasses: true, top: "jacket", topColor: "#1A1A1A", shirtColor: "#F4F1FF", bottom: "pants", bottomColor: "#1F5FA8", shoesColor: "#1A1A1A" });
+})();
+</script>
+</body>
+</html>

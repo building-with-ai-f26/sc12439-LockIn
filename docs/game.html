@@ -43,7 +43,7 @@
   code { color: var(--gold); font-size: 14px; }
   pre { background: #0c0b1d; border: 2px solid var(--border); padding: 12px; overflow: auto; font-size: 13px; }
 
-  .avatar { width: 48px; height: 48px; image-rendering: pixelated; border: 2px solid #000; background: #0c0b1d; display: block; }
+  .avatar { width: 48px; height: 48px; image-rendering: pixelated; display: block; }
   .avatar.lg { width: 96px; height: 96px; }
   .stat { text-align: center; }
   .stat .big { font-size: 22px; color: var(--gold); display: block; margin-bottom: 6px; }
@@ -71,9 +71,9 @@
   .cell { position: relative; aspect-ratio: 1; border: 2px solid var(--border); background: #0c0b1d; font-family: "Press Start 2P", monospace; font-size: 8px; color: var(--muted); padding: 3px; }
   .cell.start { border-color: var(--green); color: var(--green); }
   .cell.finish { border-color: var(--gold); color: var(--gold); }
-  .cell .pieces { position: absolute; inset: 14px 2px 2px; display: flex; flex-wrap: wrap; gap: 2px; align-content: flex-start; }
-  .cell .pieces img { width: 18px; height: 18px; image-rendering: pixelated; border: 1px solid #000; }
-  .cell .pieces b { width: 18px; height: 18px; font-size: 8px; display: grid; place-items: center; background: var(--blue); color: #000; border: 1px solid #000; }
+  .cell .pieces { position: absolute; inset: 13px 2px 2px; display: flex; flex-wrap: wrap; gap: 2px; align-content: flex-end; justify-content: center; }
+  .cell .pieces img { width: 24px; height: 24px; image-rendering: pixelated; }
+  .cell .pieces b { width: 20px; height: 20px; font-size: 8px; display: grid; place-items: center; background: var(--blue); color: #000; border: 1px solid #000; }
   footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
   [hidden] { display: none !important; }
 </style>
@@ -120,9 +120,8 @@
       <div class="panel">
         <h2>▶ YOU</h2>
         <label class="f"><span class="pixel">YOUR NAME</span><input type="text" id="pName" maxlength="16" placeholder="Sam"></label>
-        <label class="f"><span class="pixel">GAME PIECE (OPTIONAL PHOTO)</span>
-          <input type="file" id="pPhoto" accept="image/*" style="color:var(--muted)"></label>
-        <div class="row"><img class="avatar lg" id="pAvatar" alt="" hidden><span class="muted" id="pAvatarMsg">A photo becomes a 32×32 8-bit piece, right here in your browser.</span></div>
+        <span class="pixel" style="display:block;font-size:9px;color:var(--muted);margin-bottom:8px;">YOUR GAME PIECE</span>
+        <div id="builder"></div>
       </div>
       <div class="panel">
         <h2>▶ FITNESS GOAL</h2>
@@ -207,7 +206,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="supabase-config.js"></script>
-<script src="pixelate.js"></script>
+<script src="sprite.js"></script>
+<script src="character-ui.js"></script>
 <script src="game-rules.js"></script>
 <script src="game.js"></script>
 </body>

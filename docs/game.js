@@ -10,7 +10,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var sb = null, uid = null;
   var challenge = null, me = null, players = [], workouts = [];
-  var pendingAvatar = null;   // data URL chosen during intake
+  var builder = null;         // CharacterUI instance, mounted on first intake
   var lastSummary = null;     // to detect a level-up after logging
 
   // ---------- tiny helpers ----------
@@ -83,43 +83,13 @@
   // ---------- intake ----------
   function openIntake() {
     $("intakeChallenge").textContent = challenge.name + " (starts " + challenge.starts_on + ")";
+    if (!builder) builder = CharacterUI.mount($("builder"), { initial: Sprite.randomOptions() });
     updateGoalPreview();
     show("intake");
   }
   function goalText(n) { return "Work out " + n + "× per week"; }
   function updateGoalPreview() { $("goalPreview").textContent = "Your locked goal: “" + goalText($("pPerWeek").value) + "” for 90 days."; }
 
-  // Photo → 32×32 pixel-art data URL using the same code as 8-Bit Me.
-  function makeAvatar(file) {
-    return new Promise(function (resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = function (e) {
-        var img = new Image();
-        img.onload = function () {
-          var side = Math.min(img.naturalWidth, img.naturalHeight);
-          var sx = (img.naturalWidth - side) / 2, sy = (img.naturalHeight - side) / 2;
-          var cur = document.createElement("canvas"); cur.width = cur.height = side;
-          cur.getContext("2d").drawImage(img, sx, sy, side, side, 0, 0, side, side);
-          while (cur.width / 2 >= 32) {
-            var half = document.createElement("canvas"); half.width = half.height = Math.floor(cur.width / 2);
-            var hc = half.getContext("2d"); hc.imageSmoothingQuality = "high"; hc.drawImage(cur, 0, 0, half.width, half.height);
-            cur = half;
-          }
-          var small = document.createElement("canvas"); small.width = small.height = 32;
-          var sc = small.getContext("2d", { willReadFrequently: true });
-          sc.imageSmoothingQuality = "high"; sc.drawImage(cur, 0, 0, 32, 32);
-          var id = sc.getImageData(0, 0, 32, 32);
-          id.data.set(Pixelate.quantize(id.data, 32, 32, { palette: "portrait" }));
-          sc.putImageData(id, 0, 0);
-          resolve(small.toDataURL("image/png"));
-        };
-        img.onerror = reject;
-        img.src = e.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
   async function lockIn() {
     var name = $("pName").value.trim();
     if (!name) { msg("lockMsg", "Tell us your name.", "err"); return; }
@@ -127,7 +97,7 @@
     if (!confirm("Lock in “" + goalText(n) + "” for 90 days? This cannot be changed.")) return;
     msg("lockMsg", "Locking in…");
     var r = await sb.from("players").insert({
-      challenge_id: challenge.id, user_id: uid, name: name, avatar_data_url: pendingAvatar,
+      challenge_id: challenge.id, user_id: uid, name: name, avatar_data_url: builder ? builder.getDataURL(1) : null,
       goal_type: "fitness", goal_per_week: n, goal_text: goalText(n)
     }).select().single();
     if (r.error) { fail("lockMsg", r.error); return; }
@@ -242,11 +212,6 @@
   $("createBtn").addEventListener("click", create);
   $("joinBtn").addEventListener("click", join);
   $("pPerWeek").addEventListener("change", updateGoalPreview);
-  $("pPhoto").addEventListener("change", async function (e) {
-    var f = e.target.files[0]; if (!f) return;
-    try { pendingAvatar = await makeAvatar(f); $("pAvatar").src = pendingAvatar; $("pAvatar").hidden = false; $("pAvatarMsg").textContent = "Looking sharp."; }
-    catch (err) { $("pAvatarMsg").textContent = "Couldn't read that image."; }
-  });
   $("lockBtn").addEventListener("click", lockIn);
   $("logBtn").addEventListener("click", function () { logWorkout(new Date().toISOString()); });
   $("logPastBtn").addEventListener("click", function () {

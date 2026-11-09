@@ -143,7 +143,9 @@
   <h2>▶ PLAY (BUILD 2)</h2>
   <div class="panel">
     <p><strong>The game loop is live.</strong> Start a challenge, send friends the invite link, and each person locks in a fitness goal of 1 to 7 workouts per week. Log each workout as it happens. Hit the week and you level up and move 3 spaces. Miss it and you slide back 1. Three hit weeks in a row earn a bonus space. First to space 40 wins.</p>
-    <p style="margin-bottom:16px;"><a class="chip" style="text-decoration:none;color:var(--gold);" href="game.html">▶ START OR JOIN A CHALLENGE</a></p>
+    <p style="margin-bottom:16px;"><a class="chip" style="text-decoration:none;color:var(--gold);" href="game.html">▶ START OR JOIN A CHALLENGE</a> <a class="chip" style="text-decoration:none;color:var(--gold);" href="character.html">▶ BUILD YOUR CHARACTER</a></p>
+    <img class="shot" src="images/characters.png" alt="Seven 8-bit characters made with the character builder: different hair, skin tones, jackets, hoodies, tees, pants, shorts and skirts" style="min-height:0;image-rendering:pixelated;">
+    <p style="margin-top:12px;">Your game piece is a full-body 8-bit character you build yourself: hair, face, glasses, top, bottoms, shoes and colours. Upload a photo and it suggests your skin and hair colour. It appears on the board and in the standings.</p>
     <p class="todo">TODO: add a screenshot of a real challenge once the group has a week of check-ins.</p>
   </div>
 
@@ -193,6 +195,7 @@
           <li>Chose Supabase over localStorage so friends share one board from GitHub Pages. Tradeoff: identity is per device, so switching phones means a new player.</li>
           <li>Every workout is its own row with a <code>source</code> column so a Whoop sync or an MCP tool can feed the same table later without touching the rules.</li>
           <li>Hit weeks now level you up the moment you hit the goal, not at week's end, for faster feedback.</li>
+          <li>Replaced the pixelated-photo avatar with a hand-drawn sprite builder after seeing the reference style I actually wanted: flat colours, full body, 15×24 grid. A photo now only suggests colours. Still $0 and browser-only; an AI redraw remains a later experiment.</li>
           <li>PostHog still not installed. Next.</li>
         </ul>
       </td></tr>
