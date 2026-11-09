@@ -64,7 +64,7 @@
     var r = await sb.from("challenges").insert({ name: name, starts_on: $("cStart").value || todayISO(), invite_code: inviteCode(), created_by: uid }).select().single();
     if (r.error) { fail("createMsg", r.error); return; }
     challenge = r.data;
-    openIntake();
+    openCharacter();
   }
   async function join() {
     var code = $("joinCode").value.trim().toUpperCase();
@@ -77,13 +77,32 @@
     // Already in this one? Go straight to play.
     var existing = await sb.from("players").select("*").eq("user_id", uid).eq("challenge_id", challenge.id).maybeSingle();
     if (existing.data) { me = existing.data; await refresh(); show("play"); return; }
-    openIntake();
+    openCharacter();
   }
 
-  // ---------- intake ----------
+  // ---------- onboarding: step 1 character, step 2 goal ----------
+  var SAVED_KEY = "lockin.character";
+  function savedOptions() {
+    try { var raw = localStorage.getItem(SAVED_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+  }
+  function openCharacter() {
+    $("charChallenge").textContent = challenge.name + " (starts " + challenge.starts_on + ")";
+    if (!builder) {
+      builder = CharacterUI.mount($("builder"), {
+        initial: savedOptions() || Sprite.randomOptions(),
+        onChange: function (opts) { try { localStorage.setItem(SAVED_KEY, JSON.stringify(opts)); } catch (e) { /* private mode, fine */ } }
+      });
+    }
+    show("character");
+    $("pName").focus();
+  }
   function openIntake() {
+    var name = $("pName").value.trim();
+    if (!name) { msg("charMsg", "Tell us your name first.", "err"); $("pName").focus(); return; }
+    msg("charMsg", "");
     $("intakeChallenge").textContent = challenge.name + " (starts " + challenge.starts_on + ")";
-    if (!builder) builder = CharacterUI.mount($("builder"), { initial: Sprite.randomOptions() });
+    $("pieceName").textContent = name;
+    CharacterUI.draw($("piecePreview"), builder.getOptions(), 1, false);
     updateGoalPreview();
     show("intake");
   }
@@ -97,7 +116,7 @@
     if (!confirm("Lock in “" + goalText(n) + "” for 90 days? This cannot be changed.")) return;
     msg("lockMsg", "Locking in…");
     var r = await sb.from("players").insert({
-      challenge_id: challenge.id, user_id: uid, name: name, avatar_data_url: builder ? builder.getDataURL(1) : null,
+      challenge_id: challenge.id, user_id: uid, name: name, avatar_data_url: builder.getDataURL(1),
       goal_type: "fitness", goal_per_week: n, goal_text: goalText(n)
     }).select().single();
     if (r.error) { fail("lockMsg", r.error); return; }
@@ -212,6 +231,9 @@
   $("createBtn").addEventListener("click", create);
   $("joinBtn").addEventListener("click", join);
   $("pPerWeek").addEventListener("change", updateGoalPreview);
+  $("nextBtn").addEventListener("click", openIntake);
+  $("pName").addEventListener("keydown", function (e) { if (e.key === "Enter") openIntake(); });
+  $("editCharBtn").addEventListener("click", function () { show("character"); });
   $("lockBtn").addEventListener("click", lockIn);
   $("logBtn").addEventListener("click", function () { logWorkout(new Date().toISOString()); });
   $("logPastBtn").addEventListener("click", function () {

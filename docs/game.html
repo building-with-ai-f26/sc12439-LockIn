@@ -45,6 +45,8 @@
 
   .avatar { width: 48px; height: 48px; image-rendering: pixelated; display: block; }
   .avatar.lg { width: 96px; height: 96px; }
+  .step { font-size: 9px; color: var(--muted); margin-bottom: 10px; } .step span { color: var(--green); }
+  .piece-preview { width: 90px; height: 144px; image-rendering: pixelated; image-rendering: crisp-edges; background: #0c0b1d; border: 3px solid #000; box-shadow: 4px 4px 0 #000; flex: none; }
   .stat { text-align: center; }
   .stat .big { font-size: 22px; color: var(--gold); display: block; margin-bottom: 6px; }
   .stat .pixel { font-size: 8px; color: var(--muted); }
@@ -112,16 +114,37 @@
     </div>
   </section>
 
-  <!-- INTAKE: lock in a goal -->
+  <!-- ONBOARDING STEP 1: build your character -->
+  <section data-view="character" hidden>
+    <div class="step pixel">STEP 1 OF 2 · <span>CHARACTER</span></div>
+    <h1>BUILD YOUR CHARACTER</h1>
+    <p class="muted">Joining <strong id="charChallenge"></strong>. This is your game piece on the board. Upload a photo to pick your colours, or hit RANDOM and tweak.</p>
+    <div class="panel">
+      <label class="f" style="max-width:360px"><span class="pixel">YOUR NAME</span><input type="text" id="pName" maxlength="16" placeholder="Sam"></label>
+      <div id="builder"></div>
+      <div class="row" style="margin-top:18px;justify-content:space-between">
+        <div class="msg" id="charMsg" style="margin:0"></div>
+        <button class="btn" id="nextBtn" type="button">NEXT: SET YOUR GOAL ▶</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ONBOARDING STEP 2: lock in a goal -->
   <section data-view="intake" hidden>
+    <div class="step pixel">STEP 2 OF 2 · <span>GOAL</span></div>
     <h1>LOCK IN YOUR GOAL</h1>
     <p class="muted">Joining <strong id="intakeChallenge"></strong>. Write it once. It cannot be changed after you lock in.</p>
     <div class="grid">
       <div class="panel">
-        <h2>▶ YOU</h2>
-        <label class="f"><span class="pixel">YOUR NAME</span><input type="text" id="pName" maxlength="16" placeholder="Sam"></label>
-        <span class="pixel" style="display:block;font-size:9px;color:var(--muted);margin-bottom:8px;">YOUR GAME PIECE</span>
-        <div id="builder"></div>
+        <h2>▶ YOUR PIECE</h2>
+        <div class="row" style="align-items:flex-start">
+          <canvas class="piece-preview" id="piecePreview" width="15" height="24"></canvas>
+          <div>
+            <div class="pixel" style="font-size:14px;color:var(--gold);margin-bottom:6px" id="pieceName"></div>
+            <p class="muted" style="font-size:13px">Shown at 2× in standings and 1× on the board.</p>
+            <button class="btn alt" id="editCharBtn" type="button">◀ CHANGE CHARACTER</button>
+          </div>
+        </div>
       </div>
       <div class="panel">
         <h2>▶ FITNESS GOAL</h2>

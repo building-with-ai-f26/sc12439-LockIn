@@ -145,7 +145,7 @@
     <p><strong>The game loop is live.</strong> Start a challenge, send friends the invite link, and each person locks in a fitness goal of 1 to 7 workouts per week. Log each workout as it happens. Hit the week and you level up and move 3 spaces. Miss it and you slide back 1. Three hit weeks in a row earn a bonus space. First to space 40 wins.</p>
     <p style="margin-bottom:16px;"><a class="chip" style="text-decoration:none;color:var(--gold);" href="game.html">▶ START OR JOIN A CHALLENGE</a> <a class="chip" style="text-decoration:none;color:var(--gold);" href="character.html">▶ BUILD YOUR CHARACTER</a></p>
     <img class="shot" src="images/characters.png" alt="Seven 8-bit characters made with the character builder: different hair, skin tones, jackets, hoodies, tees, pants, shorts and skirts" style="min-height:0;image-rendering:pixelated;">
-    <p style="margin-top:12px;">Your game piece is a full-body 8-bit character you build yourself: hair, face, glasses, top, bottoms, shoes and colours. Upload a photo and it suggests your skin and hair colour. It appears on the board and in the standings.</p>
+    <p style="margin-top:12px;">Onboarding is two steps. Step 1: build your character, a full-body 8-bit game piece with your choice of hair, face, glasses, top, bottoms, shoes and colours. Upload a photo and it suggests your skin and hair colour. Step 2: see your piece next to the goal you are about to lock in. The piece then appears on the board and in the standings.</p>
     <p class="todo">TODO: add a screenshot of a real challenge once the group has a week of check-ins.</p>
   </div>
 
@@ -184,7 +184,7 @@
     <table>
       <tr><td>What works</td><td>
         <ul>
-          <li>Core workflow end to end at <a href="game.html">game.html</a>: create or join a challenge by invite code, lock in a fitness goal, log workouts, level up, see standings and the board.</li>
+          <li>Core workflow end to end at <a href="game.html">game.html</a>: create or join a challenge by invite code, build your 8-bit character (step 1), lock in a fitness goal (step 2), log workouts, level up, see standings and the board.</li>
           <li>Shared backend on Supabase free tier. Each phone signs in anonymously; Row Level Security means you can only write your own workouts. Verified with a two-identity smoke test against the live project.</li>
           <li>Game rules are pure functions covered by 10 Node tests; 17 tests total pass.</li>
         </ul>
