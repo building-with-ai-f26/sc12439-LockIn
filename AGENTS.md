@@ -11,6 +11,7 @@
 - **Install dependencies:** none (no packages yet)
 - **Run locally:** `python3 -m http.server 8000 --directory docs` then open http://localhost:8000/game.html (needs `docs/supabase-config.js` filled in, see `supabase/README.md`) or http://localhost:8000/prototype.html
 - **Run deterministic tests:** `node --test "tests/*.test.cjs"`
+- **Live smoke test (hits the real Supabase project, leaves a SMOKE* group to delete):** `node scripts/smoke-live.mjs docs/supabase-config.js`
 - **Run model evals:** not applicable yet (no model calls in Build 1)
 
 ## 3. Non-Negotiable Engineering Rules
