@@ -1,268 +1,162 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>[Your Product Name] · Building with AI (Fall 2026)</title>
-
-  <!-- Week 1: create your PostHog account only.
-       Build 2: paste your project's current PostHog web snippet here,
-       then install analytics in the local app and verify events. -->
-
-  <style>
-    :root {
-      --bg: #fafafa;
-      --card: #ffffff;
-      --text: #111827;
-      --muted: #4b5563;
-      --border: #e5e7eb;
-      --accent: #1d63dc;
-      --tag-bg: #eff6ff;
-      --tag-text: #1e40af;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "DM Sans", "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
-    .container {
-      max-width: 820px;
-      margin: 0 auto;
-      padding: 48px 24px 80px;
-    }
-    header {
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 28px;
-      margin-bottom: 32px;
-    }
-    .eyebrow {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      background: var(--tag-bg);
-      color: var(--tag-text);
-      padding: 4px 10px;
-      border-radius: 999px;
-      margin-bottom: 12px;
-    }
-    h1 {
-      font-size: 36px;
-      line-height: 1.15;
-      margin: 0 0 12px;
-      letter-spacing: -0.02em;
-    }
-    .tagline {
-      font-size: 19px;
-      color: var(--muted);
-      margin: 0 0 20px;
-    }
-    .cta-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .btn {
-      display: inline-block;
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 15px;
-      text-decoration: none;
-      background: var(--accent);
-      color: #fff;
-    }
-    .btn-secondary {
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    section {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px 28px;
-      margin-bottom: 24px;
-    }
-    h2 {
-      font-size: 20px;
-      margin: 0 0 14px;
-      letter-spacing: -0.01em;
-    }
-    h3 {
-      font-size: 16px;
-      margin: 18px 0 6px;
-    }
-    p, ul {
-      margin: 0 0 12px;
-      color: #1f2937;
-    }
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
-    .stat-box {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 16px;
-      background: var(--bg);
-    }
-    .stat-label {
-      font-size: 12px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .stat-value {
-      font-size: 20px;
-      font-weight: 700;
-      margin-top: 4px;
-    }
-    .log-entry {
-      border-top: 1px solid var(--border);
-      padding-top: 16px;
-      margin-top: 16px;
-    }
-    .log-entry:first-of-type {
-      border-top: none;
-      padding-top: 0;
-      margin-top: 0;
-    }
-    .meta {
-      font-size: 13px;
-      color: var(--muted);
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lock-In Party</title>
+<meta name="description" content="An 8-bit party board game for 90-day goals with friends.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14122b;
+    --panel: #1f1c42;
+    --ink: #f4f1ff;
+    --muted: #b7b0e0;
+    --gold: #ffd23f;
+    --green: #3ddc84;
+    --red: #ff5c7a;
+    --blue: #4cc9f0;
+    --border: #3a3575;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.6 "Inter", system-ui, sans-serif;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 48px 16px 80px; }
+  h1, h2, .pixel { font-family: "Press Start 2P", monospace; }
+  h1 { font-size: clamp(22px, 5vw, 36px); line-height: 1.4; color: var(--gold); margin: 0 0 16px; text-shadow: 4px 4px 0 #000; }
+  h2 { font-size: 14px; color: var(--blue); margin: 48px 0 16px; letter-spacing: 1px; }
+  h3 { font-size: 17px; margin: 0 0 6px; }
+  p { margin: 0 0 12px; }
+  .tag { color: var(--muted); font-size: 18px; margin-bottom: 24px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: "Press Start 2P", monospace; font-size: 10px; padding: 8px 10px; border: 2px solid var(--border); background: var(--panel); }
+  .panel { background: var(--panel); border: 3px solid var(--border); box-shadow: 6px 6px 0 #000; padding: 20px; margin-bottom: 16px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+  .before h3 { color: var(--red); }
+  .after h3 { color: var(--green); }
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0; }
+  ol.steps li { counter-increment: s; position: relative; padding: 12px 0 12px 52px; border-bottom: 2px dashed var(--border); }
+  ol.steps li:last-child { border-bottom: 0; }
+  ol.steps li::before {
+    content: counter(s); position: absolute; left: 0; top: 10px;
+    width: 34px; height: 34px; display: grid; place-items: center;
+    font-family: "Press Start 2P", monospace; font-size: 12px;
+    background: var(--gold); color: #000; box-shadow: 3px 3px 0 #000;
+  }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin-bottom: 8px; }
+  .no { color: var(--red); font-family: "Press Start 2P", monospace; font-size: 11px; margin-right: 6px; }
+  .shot { width: 100%; border: 3px solid var(--border); background: #0c0b1d; display: block; min-height: 220px; }
+  .todo { color: var(--gold); font-style: italic; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 10px 8px; border-bottom: 2px dashed var(--border); vertical-align: top; }
+  td:first-child { width: 34%; color: var(--muted); font-weight: 600; }
+  footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
+  a { color: var(--blue); }
+</style>
 </head>
 <body>
-  <div class="container">
-    <!-- HERO / PRODUCT PITCH -->
-    <header>
-      <span class="eyebrow">NYU Stern · Building with AI · Fall 2026</span>
-      <h1>[Your Product Name]</h1>
-      <p class="tagline">[One clear sentence: Who is this for, and what painful job does it do for them?]</p>
-      <div class="cta-row">
-        <a class="btn" href="#live-demo" onclick="window.posthog && posthog.capture('clicked_try_product')">See the Product →</a>
-        <a class="btn btn-secondary" href="#prd">Read the Living PRD</a>
-        <a class="btn btn-secondary" href="#build-log">Weekly Build Log</a>
-      </div>
-    </header>
+<div class="wrap">
 
-    <!-- DEMO / SCREENSHOT / VIDEO SHOWCASE -->
-    <section id="live-demo">
-      <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
-      <p>
-        <strong>Current Status:</strong> [Build 1: local prototype / Builds 2–4: local app / Build 5: cloud app]<br />
-        <strong>Demo:</strong> Placeholder image for now; a prototype screenshot is coming.
-      </p>
-      <img src="images/prototype.png"
-           alt="Meme of a gamer leaning in toward the screen"
-           style="max-width: 100%; border: 1px solid var(--border); border-radius: 8px;" />
-      <p class="meta">
-        Ask your coding agent to embed a screenshot or GIF of your local prototype for Build 1. Keep this evidence current, then add your cloud app link and two-minute video in Build 5.
-      </p>
-    </section>
+  <header>
+    <div class="pixel" style="font-size:10px;color:var(--muted);margin-bottom:12px;">PRODUCT PAGE · PRD v1</div>
+    <h1>LOCK-IN PARTY</h1>
+    <p class="tag">An 8-bit party board game where friends lock in a 90-day goal, check in each week, and race each other around the board.</p>
+    <div class="chips">
+      <span class="chip">90 DAYS</span>
+      <span class="chip">FRIENDS ONLY</span>
+      <span class="chip">ANY GOAL</span>
+    </div>
+  </header>
 
-    <!-- LIVING PRD (Updated every week!) -->
-    <section id="prd">
-      <h2>Living PRD (Product Requirements Document)</h2>
-      <p class="meta">Updated every week as we test with real users and learn what works.</p>
-
-      <h3>1. Target User & The Job to Be Done</h3>
-      <p><strong>Who is this for?</strong> [Name a specific, reachable person or role you have direct access to.]</p>
-      <p><strong>The painful "Before" workflow:</strong> [How do they do this today, and why is it slow, manual, or broken?]</p>
-      <p><strong>The "After" workflow with this product:</strong> [What does your tool do for them in one sitting?]</p>
-
-      <h3>2. Scope & Explicit Non-Goals</h3>
-      <ul>
-        <li><strong>In Scope (Core Workflow):</strong> [The 1 main workflow this product does reliably]</li>
-        <li><strong>Out of Scope #1:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-        <li><strong>Out of Scope #2:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-        <li><strong>Out of Scope #3:</strong> [Feature you are deliberately NOT building in 6 weeks]</li>
-      </ul>
-
-      <h3>3. How It Works Under the Hood & Riskiest Assumption (Week 2+)</h3>
-      <p><strong>Riskiest Assumption:</strong> [What is the #1 technical or user risk that could sink this product?]</p>
-      <p><strong>Simple Architecture:</strong> [User Input] → [Your App / Server] → [AI Model / Tool] → [Output]</p>
-
-      <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
-      <div class="grid-2">
-        <div class="stat-box">
-          <div class="stat-label">Cumulative Build Spend</div>
-          <div class="stat-value">[Record actual spend]</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Est. Cost Per User Run</div>
-          <div class="stat-value">[Not yet estimated]</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">User Evidence (Analytics from Build 2)</div>
-          <div class="stat-value">[Not yet measured]</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Sponsor Call (Week 6)</div>
-          <div class="stat-value">TBD</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- WEEKLY BUILD LOG (Updated at least twice a week via Git commits) -->
-    <section id="build-log">
-      <h2>Weekly Build Log</h2>
-      <p class="meta">Build on at least two separate days each week outside class, including the November 3 break. Push commits and log actual progress, failures, PRD changes, costs, and hours here. All build deadlines are noon, New York time.</p>
-
-      <div class="log-entry">
-        <h3>Build 1 · Intent.md & Throwaway Prototype (Due Nov 9)</h3>
-        <ul>
-          <li><strong>What shipped:</strong> [What you actually built; link your local prototype screenshot or GIF above.]</li>
-          <li><strong>Things learned with AI:</strong> [What you learned from AI practice and Terminus Episodes 1 and 2.]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
-        </ul>
-      </div>
-
-      <div class="log-entry">
-        <h3>Build 2 · Smallest Local Version & PostHog (Due Nov 16)</h3>
-        <ul>
-          <li><strong>What shipped:</strong> [Local working slice, PostHog verified on this page and the local app, PRD v2, and local setup in AGENTS.md]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
-        </ul>
-      </div>
-
-      <div class="log-entry">
-        <h3>Build 3 · Build.exe: The Core Workflow (Due Nov 23)</h3>
-        <ul>
-          <li><strong>What shipped:</strong> [End-to-end workflow working with real inputs + PostHog funnel events]</li>
-          <li><strong>What broke / changed in PRD:</strong> [Fill in]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
-        </ul>
-      </div>
-
-      <div class="log-entry">
-        <h3>Build 4 · Test.py: Choose Track A or Track B (Due Nov 30)</h3>
-        <ul>
-          <li><strong>Chosen track:</strong> [A: 10-case domain eval and one outside target-user review; OR B: 3–5 outside users and replay findings]</li>
-          <li><strong>Results and improvements:</strong> [Before/after evidence; for Track B, fixes to the top three friction points]</li>
-          <li><strong>PRD v4 changes:</strong> [What the evidence changed]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
-        </ul>
-      </div>
-
-      <div class="log-entry">
-        <h3>Build 5 · Ship.installer: Launch Ops, Rollback Check & 2-Min Video (Due Dec 7)</h3>
-        <ul>
-          <li><strong>Launch Ops & Safety:</strong> [Verified no exposed keys, set spend cap, tested 2-minute rollback]</li>
-          <li><strong>2-Minute Video & Final Polish:</strong> [Link/embed above]</li>
-          <li><strong>Cost & time this week:</strong> $[0.00] · [0] hours</li>
-        </ul>
-      </div>
-    </section>
+  <h2>▶ THE PROBLEM</h2>
+  <div class="panel">
+    <p>Friend groups start challenges all the time ("let's all work out 3x a week"), but they live in a group chat. After a week or two the messages stop, nobody knows who's still going, and there's no fun reason to keep showing up.</p>
+    <p>Lock-In Party turns a shared goal into a game: every check-in moves your piece on a retro board, so progress is visible, a little competitive, and actually fun to come back to.</p>
   </div>
+
+  <h2>▶ REACHABLE USER</h2>
+  <div class="panel">
+    <p><strong>Me and my friend group</strong> (5–6 people) who already talk in a group chat and have tried fitness challenges before. Several of us track workouts with Whoop; others want non-fitness goals like reading.</p>
+    <p>I can reach every one of them today by text, which means I can test with real people from week one.</p>
+    <p class="todo">TODO: add first names or a description of the group.</p>
+  </div>
+
+  <h2>▶ BEFORE / AFTER</h2>
+  <div class="grid2">
+    <div class="panel before">
+      <h3>Before</h3>
+      <ul>
+        <li>Someone proposes a challenge in the group chat.</li>
+        <li>Everyone agrees, but goals are vague.</li>
+        <li>Updates are random screenshots, if any.</li>
+        <li>By week 2 the chat goes quiet and the challenge quietly dies.</li>
+      </ul>
+    </div>
+    <div class="panel after">
+      <h3>After</h3>
+      <ul>
+        <li>The group creates one 90-day challenge.</li>
+        <li>Each person locks in a specific goal on day 1.</li>
+        <li>Weekly check-ins move your piece around the board.</li>
+        <li>Everyone can see who's ahead, who's slipping, and what's at stake.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>▶ CORE WORKFLOW</h2>
+  <div class="panel">
+    <ol class="steps">
+      <li><strong>Join a challenge.</strong> Open the group's board from an invite link.</li>
+      <li><strong>Lock in your goal.</strong> Write it once, specifically (e.g. "Work out 3x per week" or "Read 20 pages a day"). It can't be edited after lock-in.</li>
+      <li><strong>Check in.</strong> Each week, report whether you hit your goal.</li>
+      <li><strong>Move on the board.</strong> Hitting your goal moves your piece forward; missing it costs you spaces.</li>
+      <li><strong>See the standings.</strong> The board shows everyone's position and streaks through day 90.</li>
+    </ol>
+  </div>
+
+  <h2>▶ NON-GOALS (v1)</h2>
+  <div class="panel">
+    <ul style="list-style:none;padding:0;">
+      <li><span class="no">✕</span><strong>No Whoop or wearable integration.</strong> Check-ins are self-reported for now. Auto-verifying fitness goals through Whoop is a later build.</li>
+      <li><span class="no">✕</span><strong>No minigames.</strong> Moving around the board is the whole game in v1; party-style minigames come later.</li>
+      <li><span class="no">✕</span><strong>No public matchmaking.</strong> Invite-only friend groups. No strangers, no global leaderboards.</li>
+    </ul>
+  </div>
+
+  <h2>▶ OPEN QUESTION</h2>
+  <div class="panel">
+    <p><strong>How do we verify non-fitness goals?</strong> Options: honor system, photo proof, or a friend approving each check-in. v1 uses the honor system; I'll watch whether my friends trust it.</p>
+  </div>
+
+  <h2>▶ PROTOTYPE</h2>
+  <div class="panel">
+    <img class="shot" src="images/prototype.png" alt="Placeholder: meme of a gamer leaning in toward the screen">
+    <p style="margin-top:12px;" class="todo">TODO: replace this placeholder with a prototype screenshot or GIF saved as docs/images/prototype.png.</p>
+  </div>
+
+  <h2>▶ BUILD LOG</h2>
+  <div class="panel">
+    <table>
+      <tr><td>What works</td><td class="todo">TODO</td></tr>
+      <tr><td>What I learned</td><td class="todo">TODO</td></tr>
+      <tr><td>What broke or changed</td><td class="todo">TODO</td></tr>
+      <tr><td>Costs</td><td class="todo">TODO (e.g. $0, free tiers only)</td></tr>
+      <tr><td>Hours</td><td class="todo">TODO</td></tr>
+    </table>
+  </div>
+
+  <footer>
+    <p>Repo: <a href="https://github.com/building-with-ai-f26/sc12439-LockIn">github.com/building-with-ai-f26/sc12439-LockIn</a></p>
+  </footer>
+
+</div>
 </body>
 </html>
