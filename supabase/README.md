@@ -20,6 +20,10 @@ No. Supabase designs the anon key to ship in browser code. What protects the dat
 
 Run `supabase/004-goals.sql` once. It adds the `goals` table, renames `workouts` to `checkins` with a `goal_id`, gives every existing player a workouts goal copied from their old weekly target, attaches their workouts to it, and adds `players.tracking` (manual, whoop, apple_health). Run it **before** deploying the new game page, or the page will look for a table that is not there yet.
 
+## Already set up before the groups update?
+
+Run `supabase/005-groups.sql` once. It lets the person who created a group rename it, move its start date (only before day one), remove a member and delete the group. Deleting cascades to players, goals and check-ins.
+
 ## Whoop sync
 
 Run `supabase/003-whoop.sql` once, then follow `docs/WHOOP.md`. A nightly GitHub Action inserts into `checkins` against each player's workouts goal with `source = 'whoop'` and the Whoop workout id in `external_id`. The game rules only count rows per goal per week, so nothing else changes. Any future source (an MCP tool, another wearable) should do the same.

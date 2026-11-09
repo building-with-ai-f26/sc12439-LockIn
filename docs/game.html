@@ -102,6 +102,12 @@
   .grow { display: grid; grid-template-columns: 110px 1fr 48px; gap: 10px; align-items: center; margin-top: 8px; }
   .grow .lbl { font-size: 8px; color: var(--muted); } .grow .cnt { font-size: 9px; color: var(--gold); text-align: right; }
   .grow .pips { margin: 0; }
+  .switch { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .switch select { width: auto; max-width: 260px; }
+  .members { list-style: none; padding: 0; margin: 0 0 12px; }
+  .members li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 2px dashed var(--border); font-size: 14px; }
+  .btn.sm { font-size: 8px; padding: 8px 10px; }
+  .btn.danger { background: var(--red); }
   .logbtns { display: grid; gap: 10px; } .logbtns .btn { width: 100%; text-align: center; }
   .you { display: flex; gap: 12px; align-items: center; background: #0c0b1d; border: 2px solid var(--border); padding: 10px; margin-bottom: 16px; }
   footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
@@ -126,6 +132,7 @@
     <div class="step pixel">STEP 2 OF 4 · <span>GROUP</span></div>
     <h1>LOCK-IN PARTY</h1>
     <p class="muted">Lock in 90-day goals with your friends: workouts, steps, reading, no drinking. Hit your week to gain Lock-in Power and evolve. Miss it and you lose LP and can devolve. Highest LP on day 90 wins.</p>
+    <p class="pixel" style="font-size:9px" id="homeBack" hidden><a href="#" id="homeBackLink">◀ BACK TO MY GAME</a></p>
     <div class="you">
       <canvas class="piece row" id="homePiece" width="15" height="24"></canvas>
       <div>
@@ -227,6 +234,7 @@
   <section data-view="play" hidden>
     <div class="row" style="justify-content:space-between;align-items:flex-start">
       <div>
+        <div class="switch"><span class="pixel" style="font-size:8px;color:var(--muted)">MY GROUPS</span><select id="groupSwitch"></select></div>
         <h1 id="playChallenge"></h1>
         <p class="muted" id="playMeta"></p>
       </div>
@@ -281,6 +289,16 @@
           <h2>▶ LEADERBOARD · WHO IS WINNING</h2>
           <table id="standings"></table>
           <p class="muted" style="font-size:13px;margin-top:12px">Ranked by LP, then stage, then streak. Highest LP on day 90 takes it.</p>
+        </div>
+        <div class="panel" id="settings" hidden>
+          <h2>▶ GROUP SETTINGS · YOU MADE THIS GROUP</h2>
+          <label class="f"><span class="pixel">GROUP NAME</span><input type="text" id="gName" maxlength="40"></label>
+          <label class="f"><span class="pixel">STARTS ON</span><input type="date" id="gStart"><span class="muted" style="font-size:13px" id="gStartNote"></span></label>
+          <button class="btn" id="gSave" type="button">SAVE</button>
+          <div class="msg" id="gMsg"></div>
+          <h2 style="margin-top:18px">▶ MEMBERS</h2>
+          <ul class="members" id="gMembers"></ul>
+          <button class="btn alt danger" id="gDelete" type="button">DELETE GROUP</button>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 -- Lock-In Party · Supabase schema (fresh projects: run this once in the SQL editor)
--- Existing projects: run the numbered migrations instead (002, 003, 004).
+-- Existing projects: run the numbered migrations instead (002, 003, 004, 005).
 -- Also enable: Authentication → Sign In / Providers → Anonymous sign-ins.
 
 create extension if not exists pgcrypto;
@@ -98,6 +98,13 @@ drop policy if exists "challenges read"   on challenges;
 drop policy if exists "challenges insert" on challenges;
 create policy "challenges read"   on challenges for select to authenticated using (true);
 create policy "challenges insert" on challenges for insert to authenticated with check (created_by = auth.uid());
+-- The creator can rename, re-date (before start), and delete their group.
+drop policy if exists "challenges update" on challenges;
+drop policy if exists "challenges delete" on challenges;
+create policy "challenges update" on challenges for update to authenticated
+  using (created_by = auth.uid()) with check (created_by = auth.uid());
+create policy "challenges delete" on challenges for delete to authenticated
+  using (created_by = auth.uid());
 
 drop policy if exists "profiles read"   on profiles;
 drop policy if exists "profiles insert" on profiles;
@@ -112,6 +119,10 @@ drop policy if exists "players update" on players;
 create policy "players read"   on players for select to authenticated using (true);
 create policy "players insert" on players for insert to authenticated with check (user_id = auth.uid());
 create policy "players update" on players for update to authenticated using (user_id = auth.uid());
+-- The group's creator can remove a player (cascades to goals and check-ins).
+drop policy if exists "players delete" on players;
+create policy "players delete" on players for delete to authenticated
+  using (exists (select 1 from challenges c where c.id = challenge_id and c.created_by = auth.uid()));
 
 -- Goals: add to your own player only; no update or delete, ever.
 drop policy if exists "goals read"   on goals;
@@ -142,6 +153,20 @@ begin
 end $$;
 drop trigger if exists players_lock_goal_trg on players;
 create trigger players_lock_goal_trg before update on players for each row execute function players_lock_goal();
+
+-- Once a group has started its start date is frozen; code and creator never change.
+create or replace function challenges_lock() returns trigger language plpgsql as $$
+begin
+  if new.starts_on is distinct from old.starts_on and old.starts_on <= current_date then
+    raise exception 'The group has already started; its start date cannot change';
+  end if;
+  if new.invite_code is distinct from old.invite_code or new.created_by is distinct from old.created_by then
+    raise exception 'Invite code and creator cannot change';
+  end if;
+  return new;
+end $$;
+drop trigger if exists challenges_lock_trg on challenges;
+create trigger challenges_lock_trg before update on challenges for each row execute function challenges_lock();
 
 create or replace function profiles_touch() returns trigger language plpgsql as $$
 begin new.updated_at = now(); return new; end $$;

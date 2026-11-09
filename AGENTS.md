@@ -11,8 +11,8 @@
 - **Install dependencies:** none (no packages yet)
 - **Run locally:** `python3 -m http.server 8000 --directory docs` then open http://localhost:8000/game.html (needs `docs/supabase-config.js` filled in, see `supabase/README.md`; analytics need a key in `docs/posthog-config.js`, empty disables them) or http://localhost:8000/prototype.html
 - **Run deterministic tests:** `node --test "tests/*.test.cjs"`
-- **Live smoke test (hits the real Supabase project, leaves a SMOKE* group to delete):** `node scripts/smoke-live.mjs docs/supabase-config.js`
-- **Database changes:** new SQL goes in a numbered file under `supabase/` and is pasted into the Supabase SQL editor by the human; verify with a curl against the REST API before relying on it. Current: `004-goals.sql`.
+- **Live smoke test (hits the real Supabase project; deletes its own group, leaves two Smoke* profiles):** `node scripts/smoke-live.mjs docs/supabase-config.js`
+- **Database changes:** new SQL goes in a numbered file under `supabase/` and is pasted into the Supabase SQL editor by the human; verify with a curl against the REST API before relying on it. Current: `005-groups.sql`.
 - **Whoop:** `node scripts/whoop-connect.mjs` (one-time login per person), `node scripts/whoop-sync.mjs --force` (pull now). Needs `.env` from `.env.example`; nightly run is `.github/workflows/whoop-sync.yml`. See `docs/WHOOP.md`.
 - **Run model evals:** not applicable yet (no model calls in Build 1)
 

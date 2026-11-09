@@ -16,6 +16,7 @@
 4. **Choose how you track.** Connect a Whoop and the nightly sync logs workouts of 30+ minutes (walks excluded) for you; Apple Health is coming later; or tap it in by hand. Steps, reading and dry days are always tapped in, once per day.
 5. **Keep your LP up.** Everyone starts at 50 Lock-in Power. Hit every goal in a week, +10. Miss any, −15. Three hit weeks in a row evolves you to RISING, seven to LOCKED IN. Break the streak or hit 0 LP and you devolve.
 6. **Highest LP on day 90 wins.** The leaderboard shows everyone's stage, LP and streak.
+7. **Several groups, one character.** Switch between your groups from the play screen or start another. Whoever created a group can rename it, move the start date before day one, remove a member or delete it.
 
 All game math is derived from check-in rows; nothing is stored as state. See `docs/game-rules.js`.
 
@@ -24,7 +25,7 @@ All game math is derived from check-in rows; nothing is stored as state. See `do
 | File / folder | Purpose |
 | --- | --- |
 | [`docs/`](./docs/) | The whole site, served by GitHub Pages: product page + PRD (`index.html`), game (`game.html`, `game.js`), rules (`game-rules.js`), sprite system (`sprite.js`, `character-ui.js`), builder (`character.html`), Whoop callback, privacy page, analytics. |
-| [`supabase/`](./supabase/) | Database schema and migrations (`schema.sql`, `002-profiles.sql`, `003-whoop.sql`, `004-goals.sql`) and setup steps. |
+| [`supabase/`](./supabase/) | Database schema and migrations (`schema.sql`, `002-profiles.sql`, `003-whoop.sql`, `004-goals.sql`, `005-groups.sql`) and setup steps. |
 | [`scripts/`](./scripts/) | Whoop nightly sync, one-time Whoop connect, live smoke test. |
 | [`.github/workflows/whoop-sync.yml`](./.github/workflows/whoop-sync.yml) | Cron that runs the Whoop sync at 11:59 PM Eastern. |
 | [`tests/`](./tests/) | Node tests for rules, sprites, pixelation and Whoop mapping. |

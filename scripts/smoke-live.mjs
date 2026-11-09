@@ -1,8 +1,9 @@
 const cfgSrc = await (await import("node:fs")).promises.readFile(process.argv[2], "utf8");
 const URL_ = cfgSrc.match(/url:\s*"([^"]+)"/)[1], KEY = cfgSrc.match(/anonKey:\s*"([^"]+)"/)[1];
 // Live smoke test: node scripts/smoke-live.mjs docs/supabase-config.js
-// Creates two anonymous identities and a throwaway group (code SMOKE + 2 chars).
-// Clean up afterwards: delete from challenges where invite_code like 'SMOKE%';
+// Creates two anonymous identities and a throwaway group (code SMOKE + 2 chars),
+// then deletes the group at the end (that is one of the checks). The two
+// throwaway profiles stay: delete from profiles where name like 'Smoke%';
 const CODE = "SMOKE" + Math.random().toString(36).slice(2, 4).toUpperCase();
 const results = [];
 const check = (name, ok, detail) => { results.push({ name, ok, detail }); console.log((ok ? "PASS " : "FAIL ") + name + (detail ? "  — " + detail : "")); };
@@ -75,6 +76,26 @@ r = await b("players?challenge_id=eq." + ch.id + "&select=name,avatar_options,tr
 check("Leaderboard read returns both players with options and goals", r.status === 200 && r.body.length === 2 && r.body.every(p => p.avatar_options && p.goals.length), "status " + r.status + " " + (r.body?.message || ""));
 const none = await fetch(URL_ + "/rest/v1/players?select=id", { headers: { apikey: KEY } }); const nb = await none.json();
 check("No session → no rows", Array.isArray(nb) && nb.length === 0, "status " + none.status);
+
+// Group management (005): creator only.
+r = await b("challenges?id=eq." + ch.id, { method: "PATCH", body: JSON.stringify({ name: "Hijacked" }) });
+check("B (not creator) renaming the group touches 0 rows", r.status === 200 && Array.isArray(r.body) && r.body.length === 0, "status " + r.status + " rows " + (Array.isArray(r.body) ? r.body.length : "?"));
+r = await a("challenges?id=eq." + ch.id, { method: "PATCH", body: JSON.stringify({ name: "Smoke test " + CODE + " renamed" }) });
+check("A (creator) renames the group", r.status === 200 && r.body[0]?.name?.endsWith("renamed"), "status " + r.status + " " + (r.body?.message || ""));
+r = await a("challenges?id=eq." + ch.id, { method: "PATCH", body: JSON.stringify({ starts_on: "2026-12-01" }) });
+check("A cannot move the start date of a started group", r.status === 400 && /started/i.test(r.body?.message || ""), "status " + r.status + " " + (r.body?.message || ""));
+r = await b("players?id=eq." + pA.id, { method: "DELETE" });
+check("B cannot remove A (0 rows)", r.status === 200 && Array.isArray(r.body) && r.body.length === 0, "status " + r.status);
+r = await a("players?id=eq." + pB.id, { method: "DELETE" });
+check("A removes B from the group", r.status === 200 && r.body[0]?.id === pB.id, "status " + r.status + " " + (r.body?.message || ""));
+r = await a("goals?player_id=eq." + pB.id + "&select=id");
+check("B's goals went with them (cascade)", r.status === 200 && r.body.length === 0, "status " + r.status + " rows " + r.body.length);
+r = await b("challenges?id=eq." + ch.id, { method: "DELETE" });
+check("B cannot delete the group (0 rows)", r.status === 200 && Array.isArray(r.body) && r.body.length === 0, "status " + r.status);
+r = await a("challenges?id=eq." + ch.id, { method: "DELETE" });
+check("A deletes the group", r.status === 200 && r.body[0]?.id === ch.id, "status " + r.status + " " + (r.body?.message || ""));
+r = await a("players?challenge_id=eq." + ch.id + "&select=id");
+check("Players vanished with the group (cascade)", r.status === 200 && r.body.length === 0, "status " + r.status + " rows " + r.body.length);
 
 const fails = results.filter(x => !x.ok).length;
 console.log("\n" + (results.length - fails) + "/" + results.length + " passed");

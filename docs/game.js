@@ -15,6 +15,8 @@
   var sb = null, uid = null;
   var profile = null;         // my character: { name, avatar_data_url, avatar_options }
   var challenge = null, me = null, players = [], goals = [], checkins = [];
+  var myPlayers = [], myChallenges = [];   // every group I'm in (one player row each)
+  var GROUP_KEY = "lockin.group";          // localStorage: the group I last looked at
   var builder = null;         // CharacterUI instance, mounted on first use
   var afterCharacter = null;  // where to go once the character is saved
   var lastSummary = null;     // to detect a hit or evolution after logging
@@ -66,20 +68,54 @@
     var next = joinMatch
       ? function () { $("joinCode").value = joinMatch[1].toUpperCase(); return join(); }
       : async function () {
-        var mine = await sb.from("players").select("*").eq("user_id", uid).order("created_at", { ascending: false }).limit(1).maybeSingle();
-        if (mine.error) { show("setup"); msg("setupMsg", "Could not read players: " + mine.error.message + ". Did you run supabase/schema.sql?", "err"); return; }
-        if (mine.data) {
-          me = mine.data;
-          var c = await sb.from("challenges").select("*").eq("id", me.challenge_id).single();
-          challenge = c.data;
-          await refresh();
-          show("play");
-          return;
-        }
-        openHome();
+        var ok = await loadMine();
+        if (!ok) return;
+        if (!myPlayers.length) { openHome(); return; }
+        var want = null; try { want = localStorage.getItem(GROUP_KEY); } catch (e) {}
+        var pick = myPlayers.filter(function (p) { return p.challenge_id === want; })[0] || myPlayers[0];
+        await enterGroup(pick);
       };
     if (!profile) { openCharacter(next); return; }   // step 1 first, for a brand-new identity
     await next();
+  }
+
+  // ---------- my groups ----------
+  // Load every player row I own and the groups they belong to, newest first.
+  async function loadMine() {
+    var mine = await sb.from("players").select("*").eq("user_id", uid).order("created_at", { ascending: false });
+    if (mine.error) { show("setup"); msg("setupMsg", "Could not read players: " + mine.error.message + ". Did you run supabase/schema.sql?", "err"); return false; }
+    myPlayers = mine.data;
+    var ids = myPlayers.map(function (p) { return p.challenge_id; });
+    myChallenges = [];
+    if (ids.length) {
+      var c = await sb.from("challenges").select("*").in("id", ids);
+      if (c.error) { fail("setupMsg", c.error); return false; }
+      myChallenges = c.data;
+    }
+    return true;
+  }
+  function challengeFor(id) { return myChallenges.filter(function (c) { return c.id === id; })[0] || null; }
+  // Make one of my groups the current one and show the play screen.
+  async function enterGroup(player) {
+    me = player;
+    challenge = challengeFor(player.challenge_id);
+    if (!challenge) {
+      var c = await sb.from("challenges").select("*").eq("id", player.challenge_id).single();
+      if (c.error) { fail("logMsg", c.error); return; }
+      challenge = c.data; myChallenges.push(challenge);
+    }
+    try { localStorage.setItem(GROUP_KEY, challenge.id); } catch (e) {}
+    lastSummary = null;
+    await refresh();
+    show("play");
+  }
+  function renderSwitcher() {
+    var opts = myPlayers.map(function (p) {
+      var c = challengeFor(p.challenge_id);
+      return '<option value="' + p.challenge_id + '"' + (p.challenge_id === challenge.id ? " selected" : "") + ">" + esc(c ? c.name : "Group") + "</option>";
+    });
+    opts.push('<option value="__new__">+ NEW GROUP…</option>');
+    $("groupSwitch").innerHTML = opts.join("");
   }
 
   // ---------- step 1: character ----------
@@ -115,6 +151,8 @@
     $("cStart").value = todayISO();
     $("homeName").textContent = profile.name.toUpperCase();
     drawPiece($("homePiece"), profile.avatar_options, profile.avatar_data_url, 1);
+    $("homeBack").hidden = !myPlayers.length;
+    msg("createMsg", ""); msg("joinMsg", "");
     show("home");
   }
   async function create() {
@@ -137,7 +175,10 @@
     challenge = r.data;
     // Already in this one? Go straight to play.
     var existing = await sb.from("players").select("*").eq("user_id", uid).eq("challenge_id", challenge.id).maybeSingle();
-    if (existing.data) { me = existing.data; await refresh(); show("play"); return; }
+    if (existing.data) {
+      if (!myPlayers.some(function (p) { return p.id === existing.data.id; })) { myPlayers.unshift(existing.data); myChallenges.push(challenge); }
+      await enterGroup(existing.data); return;
+    }
     Analytics.track("group_joined", { via_link: !!location.hash });
     openIntake();
   }
@@ -221,8 +262,10 @@
       if (g.error) { fail("lockMsg", g.error); return; }
     }
     me = player;
+    if (!myPlayers.some(function (p) { return p.id === player.id; })) { myPlayers.unshift(player); }
+    if (!challengeFor(challenge.id)) myChallenges.push(challenge);
     Analytics.track("goal_locked", { goals: list.map(function (x) { return x.type + ":" + x.per_week; }).join(","), count: list.length });
-    openTracking(function () { return refresh().then(function () { show("play"); }); });
+    openTracking(function () { return enterGroup(player); });
   }
 
   // ---------- step 4: tracking ----------
@@ -295,6 +338,8 @@
 
   function render() {
     var s = summaryFor(me);
+    renderSwitcher();
+    renderSettings();
     $("playChallenge").textContent = challenge.name.toUpperCase();
     $("playMeta").textContent = challenge.starts_on + " → " + s.endsOn + " · invite code " + challenge.invite_code + " · " + players.length + " player" + (players.length === 1 ? "" : "s");
     drawPiece($("mePiece"), me.avatar_options, me.avatar_data_url, s.stage);
@@ -381,6 +426,59 @@
     lastSummary = s;
   }
 
+  // ---------- group settings (creator only) ----------
+  function groupStarted() { return challenge.starts_on <= todayISO(); }
+  function renderSettings() {
+    var mineToRun = challenge.created_by === uid;
+    $("settings").hidden = !mineToRun;
+    if (!mineToRun) return;
+    if (document.activeElement !== $("gName")) $("gName").value = challenge.name;
+    if (document.activeElement !== $("gStart")) $("gStart").value = challenge.starts_on;
+    $("gStart").disabled = groupStarted();
+    $("gStartNote").textContent = groupStarted() ? "Started, so the date is frozen: moving it would reshuffle everyone's weeks." : "Can change until the day it starts.";
+    $("gMembers").innerHTML = players.map(function (p) {
+      return "<li><span>" + esc(p.name) + (p.user_id === uid ? ' <span class="muted">(you)</span>' : "") + "</span>" +
+        (p.user_id === uid ? "" : '<button class="btn alt sm" type="button" data-remove="' + p.id + '">REMOVE</button>') + "</li>";
+    }).join("");
+  }
+  async function saveGroup() {
+    var name = $("gName").value.trim();
+    if (!name) { msg("gMsg", "The group needs a name.", "err"); return; }
+    var patch = { name: name };
+    if (!groupStarted() && $("gStart").value && $("gStart").value !== challenge.starts_on) patch.starts_on = $("gStart").value;
+    msg("gMsg", "Saving…");
+    var r = await sb.from("challenges").update(patch).eq("id", challenge.id).select().single();
+    if (r.error) { fail("gMsg", r.error); return; }
+    if (!r.data) { msg("gMsg", "Only the person who made the group can change it.", "err"); return; }
+    Analytics.track(patch.starts_on ? "group_start_changed" : "group_renamed");
+    challenge = r.data;
+    myChallenges = myChallenges.map(function (c) { return c.id === challenge.id ? challenge : c; });
+    msg("gMsg", "Saved.", "ok");
+    render();
+  }
+  async function removePlayer(id) {
+    var p = players.filter(function (x) { return x.id === id; })[0];
+    if (!p || !confirm("Remove " + p.name + " from " + challenge.name + "? Their goals and check-ins in this group are deleted. They can rejoin with the code.")) return;
+    var r = await sb.from("players").delete().eq("id", id);
+    if (r.error) { fail("gMsg", r.error); return; }
+    Analytics.track("player_removed");
+    msg("gMsg", "Removed " + p.name + ".", "ok");
+    await refresh();
+  }
+  async function deleteGroup() {
+    var typed = prompt("This deletes the group for everyone, with all goals and check-ins. Type the group name to confirm:");
+    if (typed === null) return;
+    if (typed.trim() !== challenge.name) { msg("gMsg", "Name did not match. Nothing deleted.", "err"); return; }
+    var r = await sb.from("challenges").delete().eq("id", challenge.id);
+    if (r.error) { fail("gMsg", r.error); return; }
+    Analytics.track("group_deleted", { players: players.length });
+    myPlayers = myPlayers.filter(function (p) { return p.challenge_id !== challenge.id; });
+    myChallenges = myChallenges.filter(function (c) { return c.id !== challenge.id; });
+    try { localStorage.removeItem(GROUP_KEY); } catch (e) {}
+    challenge = null; me = null; players = []; goals = []; checkins = []; lastSummary = null;
+    if (myPlayers.length) await enterGroup(myPlayers[0]); else openHome();
+  }
+
   async function logCheckin(goalId, whenISO) {
     var goal = lastSummary && lastSummary.goals.filter(function (g) { return g.id === goalId; })[0];
     if (!goal) { msg("logMsg", "Pick a goal first.", "err"); return; }
@@ -426,6 +524,16 @@
     logCheckin($("logGoal").value, new Date(d + "T12:00:00").toISOString());   // noon local, so it lands on that calendar day
   });
   $("undoBtn").addEventListener("click", undoLast);
+  $("groupSwitch").addEventListener("change", function () {
+    var v = this.value;
+    if (v === "__new__") { this.value = challenge.id; openHome(); return; }
+    var p = myPlayers.filter(function (x) { return x.challenge_id === v; })[0];
+    if (p) { Analytics.track("group_switched"); enterGroup(p); }
+  });
+  $("homeBackLink").addEventListener("click", function (e) { e.preventDefault(); if (me) { show("play"); } else if (myPlayers.length) enterGroup(myPlayers[0]); });
+  $("gSave").addEventListener("click", saveGroup);
+  $("gMembers").addEventListener("click", function (e) { var b = e.target.closest("[data-remove]"); if (b) removePlayer(b.dataset.remove); });
+  $("gDelete").addEventListener("click", deleteGroup);
   $("refreshBtn").addEventListener("click", refresh);
   $("shareBtn").addEventListener("click", function () {
     var link = location.origin + location.pathname + "#/join/" + challenge.invite_code;
