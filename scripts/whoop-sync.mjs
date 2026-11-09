@@ -99,12 +99,18 @@ for (const conn of connections) {
     }
 
     const records = await fetchWorkouts(fresh.access_token, window);
-    const rows = W.toWorkoutRows(records, playerIds, { minMinutes: MIN_MINUTES });
+    const candidates = W.toWorkoutRows(records, playerIds, { minMinutes: MIN_MINUTES });
+    // Skip anything already logged. (The unique index on (player_id, external_id) is
+    // partial, which PostgREST's on_conflict cannot target, so we filter here; the
+    // index still guards against a race.)
+    const existing = candidates.length
+      ? await db("workouts?select=player_id,external_id&player_id=in.(" + playerIds.join(",") + ")&external_id=not.is.null")
+      : [];
+    const seen = new Set(existing.map((w) => w.player_id + "|" + w.external_id));
+    const rows = candidates.filter((r) => !seen.has(r.player_id + "|" + r.external_id));
     let inserted = [];
-    if (rows.length) {
-      inserted = await db("workouts?on_conflict=player_id,external_id", { method: "POST", body: rows, prefer: "return=representation,resolution=ignore-duplicates" });
-    }
-    console.log(tag + " " + records.length + " Whoop workout(s) in window, " + rows.length + " eligible row(s), " + inserted.length + " new");
+    if (rows.length) inserted = await db("workouts", { method: "POST", body: rows, prefer: "return=representation" });
+    console.log(tag + " " + records.length + " Whoop workout(s) in window, " + candidates.length + " eligible, " + inserted.length + " new");
     inserted.forEach((r) => console.log("   + " + r.happened_at + "  " + r.note));
     await db("whoop_connections?user_id=eq." + conn.user_id, { method: "PATCH", body: { last_synced_at: now.toISOString(), last_error: null }, prefer: "return=minimal" });
   } catch (err) {

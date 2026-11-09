@@ -9,7 +9,13 @@
   Tokens are stored in whoop_connections using the service role key from .env.
 
   For a friend: send them the link, they approve and send you the code.
+
+  Non-interactive (for agents / scripts):
+    node scripts/whoop-connect.mjs --list                 list characters
+    node scripts/whoop-connect.mjs --who "Name" --url     print the login link, remember state
+    node scripts/whoop-connect.mjs --who "Name" --code X  finish with the pasted code
 */
+import os from "node:os";
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
@@ -41,26 +47,46 @@ async function db(pathAndQuery, opts = {}) {
   return body;
 }
 
+const args = process.argv.slice(2);
+const flag = (name) => { const i = args.indexOf(name); return i >= 0 ? (args[i + 1] || true) : null; };
+const stateFile = path.join(os.tmpdir(), "lockin-whoop-connect.json");
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 try {
   const profiles = await db("profiles?select=user_id,name,created_at&order=created_at.asc");
   if (!profiles.length) { console.log("No characters yet. Open the game, build your character, then run this again."); process.exit(1); }
   const connected = new Set((await db("whoop_connections?select=user_id")).map((c) => c.user_id));
-  console.log("\nWho is connecting their Whoop?\n");
-  profiles.forEach((p, i) => console.log("  " + (i + 1) + ") " + p.name + (connected.has(p.user_id) ? "   (already connected, will replace)" : "")));
-  const pick = parseInt(await rl.question("\nNumber: "), 10);
-  const who = profiles[pick - 1];
-  if (!who) { console.log("No such number."); process.exit(1); }
+  const list = () => profiles.forEach((p, i) => console.log("  " + (i + 1) + ") " + p.name + (connected.has(p.user_id) ? "   (already connected, will replace)" : "")));
+  if (flag("--list")) { list(); process.exit(0); }
 
-  const state = Math.random().toString(36).slice(2, 10).padEnd(8, "0");   // Whoop wants exactly 8 chars
-  const url = W.authUrl({ clientId: CLIENT_ID, redirectUri: REDIRECT_URI, state });
-  console.log("\n1. Open this link (" + who.name + " must be the one logging in):\n\n   " + url + "\n");
-  if (process.platform === "darwin" && who.name) spawn("open", [url], { stdio: "ignore", detached: true }).unref();
-  console.log("2. Approve. You land on the callback page, which shows a code.");
-  const pasted = await rl.question("3. Paste the code or the whole URL here: ");
+  let who;
+  if (flag("--who")) {
+    who = profiles.find((p) => p.name.toLowerCase() === String(flag("--who")).toLowerCase());
+    if (!who) { console.log("No character named " + flag("--who") + ". Use --list."); process.exit(1); }
+  } else {
+    console.log("\nWho is connecting their Whoop?\n"); list();
+    const pick = parseInt(await rl.question("\nNumber: "), 10);
+    who = profiles[pick - 1];
+    if (!who) { console.log("No such number."); process.exit(1); }
+  }
+
+  let state, pasted;
+  if (flag("--code")) {
+    // Second half of the non-interactive flow: state was saved by --url.
+    pasted = String(flag("--code"));
+    try { state = JSON.parse(fs.readFileSync(stateFile, "utf8")).state; } catch { state = null; }
+  } else {
+    state = Math.random().toString(36).slice(2, 10).padEnd(8, "0");   // Whoop wants exactly 8 chars
+    const url = W.authUrl({ clientId: CLIENT_ID, redirectUri: REDIRECT_URI, state });
+    fs.writeFileSync(stateFile, JSON.stringify({ state, who: who.user_id, at: new Date().toISOString() }), { mode: 0o600 });
+    console.log("\n1. Open this link (" + who.name + " must be the one logging in):\n\n   " + url + "\n");
+    if (flag("--url")) { console.log("2. Approve, copy the code from the callback page, then run:\n   node scripts/whoop-connect.mjs --who \"" + who.name + "\" --code <CODE>"); process.exit(0); }
+    if (process.platform === "darwin") spawn("open", [url], { stdio: "ignore", detached: true }).unref();
+    console.log("2. Approve. You land on the callback page, which shows a code.");
+    pasted = await rl.question("3. Paste the code or the whole URL here: ");
+  }
   const cb = W.parseCallback(pasted);
   if (!cb || !cb.code) { console.log("No code found."); process.exit(1); }
-  if (cb.state && cb.state !== state) { console.log("State mismatch: that code came from a different login attempt. Start over."); process.exit(1); }
+  if (cb.state && state && cb.state !== state) { console.log("State mismatch: that code came from a different login attempt. Start over."); process.exit(1); }
 
   const form = new URLSearchParams({ grant_type: "authorization_code", code: cb.code, client_id: CLIENT_ID, client_secret: CLIENT_SECRET, redirect_uri: REDIRECT_URI });
   const tr = await fetch(W.WHOOP.tokenUrl, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: form });

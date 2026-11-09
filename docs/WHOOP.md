@@ -21,6 +21,8 @@ node scripts/whoop-connect.mjs
 
 Pick the person's game name, open the link it prints, approve on Whoop, copy the code from the callback page, paste it back. For a friend: send them the link, they approve and send you the code. They need to have built their character in the game first.
 
+Non-interactive, for an agent or a friend's code sent later: `node scripts/whoop-connect.mjs --who "Name" --url` prints the link, then `node scripts/whoop-connect.mjs --who "Name" --code <CODE>` finishes.
+
 Test immediately, ignoring the 11 PM guard:
 
 ```
