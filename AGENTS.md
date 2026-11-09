@@ -5,12 +5,12 @@
 ## 1. Project Overview
 - **What this repo builds:** Lock-In Party, an 8-bit party board game where a friend group locks in 90-day goals and weekly check-ins move their pieces around a board. Build 1 ships the product page plus a throwaway prototype, 8-Bit Me, that turns a photo into a pixel-art game piece.
 - **Primary user & core workflow:** [See the living PRD in `docs/index.html`]
-- **Tech stack:** Static HTML/CSS/JS in `docs/`, published with GitHub Pages. Node 23 for tests. No backend yet.
+- **Tech stack:** Static HTML/CSS/JS in `docs/`, published with GitHub Pages. Supabase (Postgres + anonymous auth + RLS) as the shared backend, called from the browser with supabase-js. Node 23 for tests.
 
 ## 2. Commands
 - **Install dependencies:** none (no packages yet)
-- **Run locally:** `python3 -m http.server 8000 --directory docs` then open http://localhost:8000/prototype.html
-- **Run deterministic tests:** `node --test tests/pixelate.test.cjs`
+- **Run locally:** `python3 -m http.server 8000 --directory docs` then open http://localhost:8000/game.html (needs `docs/supabase-config.js` filled in, see `supabase/README.md`) or http://localhost:8000/prototype.html
+- **Run deterministic tests:** `node --test "tests/*.test.cjs"`
 - **Run model evals:** not applicable yet (no model calls in Build 1)
 
 ## 3. Non-Negotiable Engineering Rules

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lock-In Party · Play</title>
+<meta name="description" content="Lock in a 90-day fitness goal with friends. Log workouts, level up, race around the board.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14122b; --panel: #1f1c42; --ink: #f4f1ff; --muted: #b7b0e0;
+    --gold: #ffd23f; --green: #3ddc84; --red: #ff5c7a; --blue: #4cc9f0; --border: #3a3575;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 "Inter", system-ui, sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 16px 80px; }
+  h1, h2, .pixel, .btn, select, .chip, .big { font-family: "Press Start 2P", monospace; }
+  h1 { font-size: clamp(18px, 4vw, 28px); line-height: 1.4; color: var(--gold); margin: 0 0 8px; text-shadow: 4px 4px 0 #000; }
+  h2 { font-size: 12px; color: var(--blue); margin: 0 0 14px; letter-spacing: 1px; }
+  p { margin: 0 0 12px; }
+  a { color: var(--blue); }
+  .back { font-size: 10px; margin-bottom: 14px; display: inline-block; }
+  .muted { color: var(--muted); }
+  .panel { background: var(--panel); border: 3px solid var(--border); box-shadow: 6px 6px 0 #000; padding: 20px; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn { font-size: 10px; padding: 12px 14px; border: 3px solid #000; box-shadow: 4px 4px 0 #000; background: var(--gold); color: #000; cursor: pointer; text-decoration: none; display: inline-block; line-height: 1; }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+  .btn.alt { background: var(--panel); color: var(--ink); border-color: var(--border); }
+  .btn.green { background: var(--green); }
+  .btn.huge { font-size: 14px; padding: 20px 22px; width: 100%; text-align: center; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  label.f { display: block; margin-bottom: 14px; }
+  label.f .pixel { display: block; font-size: 9px; color: var(--muted); margin-bottom: 6px; }
+  input[type=text], input[type=date], select { background: #0c0b1d; color: var(--ink); border: 2px solid var(--border); padding: 10px; font: inherit; width: 100%; }
+  select { font-family: "Press Start 2P", monospace; font-size: 10px; }
+  .msg { font-size: 13px; color: var(--muted); min-height: 20px; margin-top: 8px; }
+  .msg.err { color: var(--red); }
+  .msg.ok { color: var(--green); }
+  code { color: var(--gold); font-size: 14px; }
+  pre { background: #0c0b1d; border: 2px solid var(--border); padding: 12px; overflow: auto; font-size: 13px; }
+
+  .avatar { width: 48px; height: 48px; image-rendering: pixelated; border: 2px solid #000; background: #0c0b1d; display: block; }
+  .avatar.lg { width: 96px; height: 96px; }
+  .stat { text-align: center; }
+  .stat .big { font-size: 22px; color: var(--gold); display: block; margin-bottom: 6px; }
+  .stat .pixel { font-size: 8px; color: var(--muted); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+  @media (max-width: 520px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .pips { display: flex; gap: 6px; margin: 10px 0 4px; }
+  .pips i { flex: 1; height: 18px; border: 2px solid #000; background: #0c0b1d; }
+  .pips i.on { background: var(--green); }
+  .weeks { display: grid; grid-template-columns: repeat(13, 1fr); gap: 4px; margin-top: 8px; }
+  .weeks i { height: 14px; border: 2px solid #000; background: #0c0b1d; display: block; }
+  .weeks i.hit { background: var(--green); }
+  .weeks i.miss { background: var(--red); }
+  .weeks i.current { outline: 2px solid var(--gold); }
+  .levelup { background: var(--gold); color: #000; border: 3px solid #000; box-shadow: 6px 6px 0 #000; padding: 14px; text-align: center; font-family: "Press Start 2P", monospace; font-size: 12px; margin-bottom: 16px; display: none; }
+  .levelup.show { display: block; animation: pop .35s ease-out; }
+  @keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 8px 6px; border-bottom: 2px dashed var(--border); vertical-align: middle; }
+  td.n { font-family: "Press Start 2P", monospace; font-size: 10px; color: var(--gold); text-align: right; white-space: nowrap; }
+  tr.me td { background: rgba(255, 210, 63, .08); }
+
+  .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 6px; }
+  .cell { position: relative; aspect-ratio: 1; border: 2px solid var(--border); background: #0c0b1d; font-family: "Press Start 2P", monospace; font-size: 8px; color: var(--muted); padding: 3px; }
+  .cell.start { border-color: var(--green); color: var(--green); }
+  .cell.finish { border-color: var(--gold); color: var(--gold); }
+  .cell .pieces { position: absolute; inset: 14px 2px 2px; display: flex; flex-wrap: wrap; gap: 2px; align-content: flex-start; }
+  .cell .pieces img { width: 18px; height: 18px; image-rendering: pixelated; border: 1px solid #000; }
+  .cell .pieces b { width: 18px; height: 18px; font-size: 8px; display: grid; place-items: center; background: var(--blue); color: #000; border: 1px solid #000; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back pixel" href="./">◀ LOCK-IN PARTY</a>
+
+  <!-- SETUP: shown when supabase-config.js is empty or sign-in fails -->
+  <section data-view="setup" hidden>
+    <h1>SETUP NEEDED</h1>
+    <div class="panel">
+      <p>This page needs a Supabase project before it can run. Follow <code>supabase/README.md</code> in the repo: run the schema, turn on anonymous sign-ins, then paste the project URL and anon key into <code>docs/supabase-config.js</code>.</p>
+      <div class="msg err" id="setupMsg"></div>
+    </div>
+  </section>
+
+  <!-- HOME: create or join -->
+  <section data-view="home" hidden>
+    <h1>LOCK-IN PARTY</h1>
+    <p class="muted">Lock in a 90-day fitness goal with your friends. Every workout you log counts toward the week. Hit the week, level up and move on the board.</p>
+    <div class="grid">
+      <div class="panel">
+        <h2>▶ START A CHALLENGE</h2>
+        <label class="f"><span class="pixel">CHALLENGE NAME</span><input type="text" id="cName" maxlength="40" placeholder="Winter Lock-In"></label>
+        <label class="f"><span class="pixel">STARTS ON</span><input type="date" id="cStart"></label>
+        <button class="btn" id="createBtn" type="button">CREATE</button>
+        <div class="msg" id="createMsg"></div>
+      </div>
+      <div class="panel">
+        <h2>▶ JOIN WITH A CODE</h2>
+        <label class="f"><span class="pixel">INVITE CODE</span><input type="text" id="joinCode" maxlength="8" placeholder="e.g. 7KQ2ZD" style="text-transform:uppercase"></label>
+        <button class="btn alt" id="joinBtn" type="button">JOIN</button>
+        <div class="msg" id="joinMsg"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTAKE: lock in a goal -->
+  <section data-view="intake" hidden>
+    <h1>LOCK IN YOUR GOAL</h1>
+    <p class="muted">Joining <strong id="intakeChallenge"></strong>. Write it once. It cannot be changed after you lock in.</p>
+    <div class="grid">
+      <div class="panel">
+        <h2>▶ YOU</h2>
+        <label class="f"><span class="pixel">YOUR NAME</span><input type="text" id="pName" maxlength="16" placeholder="Sam"></label>
+        <label class="f"><span class="pixel">GAME PIECE (OPTIONAL PHOTO)</span>
+          <input type="file" id="pPhoto" accept="image/*" style="color:var(--muted)"></label>
+        <div class="row"><img class="avatar lg" id="pAvatar" alt="" hidden><span class="muted" id="pAvatarMsg">A photo becomes a 32×32 8-bit piece, right here in your browser.</span></div>
+      </div>
+      <div class="panel">
+        <h2>▶ FITNESS GOAL</h2>
+        <label class="f"><span class="pixel">WORKOUTS PER WEEK</span>
+          <select id="pPerWeek">
+            <option value="1">1 WORKOUT / WEEK</option>
+            <option value="2">2 WORKOUTS / WEEK</option>
+            <option value="3" selected>3 WORKOUTS / WEEK</option>
+            <option value="4">4 WORKOUTS / WEEK</option>
+            <option value="5">5 WORKOUTS / WEEK</option>
+            <option value="6">6 WORKOUTS / WEEK</option>
+            <option value="7">7 WORKOUTS / WEEK</option>
+          </select></label>
+        <p class="muted" id="goalPreview"></p>
+        <p class="muted" style="font-size:13px">Rules: hit the week, +1 level and +3 spaces. Miss it, -1 space. Three hit weeks in a row adds a bonus space each week. First to FINISH (40) wins. 13 weeks.</p>
+        <button class="btn green" id="lockBtn" type="button">LOCK IT IN</button>
+        <div class="msg" id="lockMsg"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAY: dashboard, standings, board -->
+  <section data-view="play" hidden>
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div>
+        <h1 id="playChallenge"></h1>
+        <p class="muted" id="playMeta"></p>
+      </div>
+      <div class="row">
+        <button class="btn alt" id="shareBtn" type="button">COPY INVITE LINK</button>
+        <button class="btn alt" id="refreshBtn" type="button">REFRESH</button>
+      </div>
+    </div>
+    <div class="levelup" id="levelup"></div>
+    <div class="grid">
+      <div>
+        <div class="panel">
+          <div class="row">
+            <img class="avatar lg" id="meAvatar" alt="">
+            <div>
+              <div class="pixel" style="font-size:14px;color:var(--gold)" id="meName"></div>
+              <div class="muted" id="meGoal"></div>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat"><span class="big" id="sLevel">1</span><span class="pixel">LEVEL</span></div>
+            <div class="stat"><span class="big" id="sPos">0</span><span class="pixel">SPACE</span></div>
+            <div class="stat"><span class="big" id="sStreak">0</span><span class="pixel">STREAK</span></div>
+            <div class="stat"><span class="big" id="sDays">90</span><span class="pixel">DAYS LEFT</span></div>
+          </div>
+          <div class="pixel" style="font-size:10px" id="weekLabel"></div>
+          <div class="pips" id="pips"></div>
+          <div class="muted" id="weekMsg"></div>
+          <div class="weeks" id="weeks"></div>
+        </div>
+        <div class="panel">
+          <h2>▶ LOG A WORKOUT</h2>
+          <button class="btn huge green" id="logBtn" type="button">I WORKED OUT TODAY</button>
+          <div class="row" style="margin-top:14px">
+            <input type="date" id="logDate" style="width:auto">
+            <button class="btn alt" id="logPastBtn" type="button">LOG THAT DAY</button>
+            <button class="btn alt" id="undoBtn" type="button">UNDO LAST</button>
+          </div>
+          <div class="msg" id="logMsg"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <h2>▶ STANDINGS</h2>
+          <table id="standings"></table>
+        </div>
+        <div class="panel">
+          <h2>▶ THE BOARD</h2>
+          <div class="board" id="board"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Build 2 · fitness goals only · <a href="prototype.html">8-Bit Me</a> · <a href="#" id="signout">new identity</a></footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="pixelate.js"></script>
+<script src="game-rules.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
