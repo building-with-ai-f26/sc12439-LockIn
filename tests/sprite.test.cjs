@@ -87,3 +87,28 @@ test("randomOptions is deterministic for a fixed generator and always valid", ()
   assert.deepEqual(a, b);
   assert.ok(S.HAIR[a.hair] && S.TOPS[a.top] && S.BOTTOMS[a.bottom] && S.FACIAL[a.facial]);
 });
+
+test("stage 1 has no aura; stages 2 and 3 add a growing ring in the stage colour", () => {
+  const look = { hair: "short", top: "tee" };
+  const g1 = S.render(look, 1), g2 = S.render(look, 2), g3 = S.render(look, 3);
+  const count = (g, hex) => g.flat().filter((c) => c === hex).length;
+  assert.equal(count(g1, S.STAGES[2].aura), 0);
+  assert.equal(count(g1, S.STAGES[3].aura), 0);
+  assert.ok(count(g2, S.STAGES[2].aura) > 20, "stage 2 should have a blue ring");
+  assert.ok(count(g3, S.STAGES[3].aura) > count(g2, S.STAGES[2].aura), "stage 3 ring is thicker");
+  // the ring sits outside the body: the cell left of the head is aura at stage 2, empty at stage 1
+  assert.equal(g1[4][4], null);
+  assert.equal(g2[4][4], S.STAGES[2].aura);
+  // the body itself is never overwritten
+  assert.notEqual(g2[6][7], S.STAGES[2].aura);
+  assert.equal(g2.length, S.HEIGHT);
+});
+
+test("enrich saturates colours but leaves greys alone and never blows out", () => {
+  assert.equal(S.enrich("#C0392B", 0), "#C0392B");
+  const red = S.enrich("#C0392B", 0.3);
+  assert.notEqual(red, "#C0392B");
+  assert.match(red, /^#[0-9A-F]{6}$/);
+  assert.equal(S.enrich("#8E8E9A", 0.3).toLowerCase() !== "#8e8e9a", true);  // brightens a little
+  assert.equal(S.render({ skin: "#FFE0BD" }, 3)[6][7] !== "#FFE0BD", true);   // stage 3 skin is shifted
+});

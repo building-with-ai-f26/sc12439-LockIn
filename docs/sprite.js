@@ -102,6 +102,49 @@
   function rgbToHex(r, g, b) { return "#" + [r, g, b].map(function (v) { v = Math.max(0, Math.min(255, Math.round(v))); return (v < 16 ? "0" : "") + v.toString(16).toUpperCase(); }).join(""); }
   function lighten(hex, amt) { var c = hexToRgb(hex); return rgbToHex(c[0] + (255 - c[0]) * amt, c[1] + (255 - c[1]) * amt, c[2] + (255 - c[2]) * amt); }
 
+  // Evolution stages (see game-rules.js). Stage 1 is the plain sprite. Higher
+  // stages keep the same shape but get richer colours and a glowing aura.
+  var STAGES = {
+    1: { aura: null,      thick: 0, enrich: 0 },
+    2: { aura: "#4CC9F0", thick: 1, enrich: 0.18 },   // blue glow, 4-neighbour ring
+    3: { aura: "#FFD23F", thick: 2, enrich: 0.35 }    // gold glow, 8-neighbour ring
+  };
+  function rgbToHsl(c) {
+    var r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, max = Math.max(r, g, b), min = Math.min(r, g, b), h = 0, s = 0, l = (max + min) / 2;
+    if (max !== min) {
+      var d = max - min; s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4; h /= 6;
+    }
+    return [h, s, l];
+  }
+  function hslToHex(h, s, l) {
+    function f(n) { var k = (n + h * 12) % 12, a = s * Math.min(l, 1 - l); return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); }
+    return rgbToHex(f(0) * 255, f(8) * 255, f(4) * 255);
+  }
+  // More saturated and a touch brighter. Near-greys and near-blacks only brighten a little.
+  function enrich(hex, amt) {
+    if (!amt) return hex;
+    var hsl = rgbToHsl(hexToRgb(hex));
+    var sat = hsl[1] < 0.08 ? hsl[1] : Math.min(1, hsl[1] + amt);
+    return hslToHex(hsl[0], sat, Math.min(0.92, hsl[2] + amt * 0.25));
+  }
+  // Paint an aura ring onto transparent cells next to the body. thick 1 = edges only, 2 = corners too.
+  function paintAura(grid, color, thick) {
+    var cells = [];
+    for (var y = 0; y < HEIGHT; y++) for (var x = 0; x < WIDTH; x++) {
+      if (grid[y][x]) continue;
+      var hit = false;
+      for (var dy = -1; dy <= 1 && !hit; dy++) for (var dx = -1; dx <= 1 && !hit; dx++) {
+        if (!dx && !dy) continue;
+        if (thick < 2 && dx && dy) continue;
+        var yy = y + dy, xx = x + dx;
+        if (yy >= 0 && yy < HEIGHT && xx >= 0 && xx < WIDTH && grid[yy][xx]) hit = true;
+      }
+      if (hit) cells.push([y, x]);
+    }
+    cells.forEach(function (c) { grid[c[0]][c[1]] = color; });
+  }
+
   function paint(grid, layer, colors) {
     for (var r = 0; r < layer.rows.length; r++) {
       var y = layer.y + r, row = layer.rows[r];
@@ -125,11 +168,13 @@
   }
 
   // Returns HEIGHT rows × WIDTH cells of hex colour or null (transparent).
-  function render(opts) {
+  function render(opts, stage) {
     var o = normalize(opts);
+    var st = STAGES[stage] || STAGES[1];
+    var e = function (hex) { return enrich(hex, st.enrich); };
     var colors = {
-      S: o.skin, H: o.hairColor, T: o.topColor, t: o.shirtColor, A: o.accentColor,
-      B: o.bottomColor, b: lighten(o.bottomColor, 0.35), F: o.shoesColor, E: "#1A1A1A", G: "#1A1A1A"
+      S: e(o.skin), H: e(o.hairColor), T: e(o.topColor), t: e(o.shirtColor), A: e(o.accentColor),
+      B: e(o.bottomColor), b: e(lighten(o.bottomColor, 0.35)), F: e(o.shoesColor), E: "#1A1A1A", G: "#1A1A1A"
     };
     var grid = [];
     for (var y = 0; y < HEIGHT; y++) { var row = []; for (var x = 0; x < WIDTH; x++) row.push(null); grid.push(row); }
@@ -140,12 +185,13 @@
     if (!o.glasses) paint(grid, EYES, colors);
     paint(grid, FACIAL[o.facial], colors);
     if (o.glasses) paint(grid, GLASSES, colors);
+    if (st.aura) paintAura(grid, st.aura, st.thick);
     return grid;
   }
 
   // Same thing as RGBA bytes for canvas putImageData.
-  function renderRGBA(opts) {
-    var grid = render(opts);
+  function renderRGBA(opts, stage) {
+    var grid = render(opts, stage);
     var out = new Uint8ClampedArray(WIDTH * HEIGHT * 4);
     for (var y = 0; y < HEIGHT; y++) for (var x = 0; x < WIDTH; x++) {
       var hex = grid[y][x]; if (!hex) continue;
@@ -199,7 +245,7 @@
   }
 
   return {
-    WIDTH: WIDTH, HEIGHT: HEIGHT, COLORS: COLORS, DEFAULTS: DEFAULTS,
+    WIDTH: WIDTH, HEIGHT: HEIGHT, COLORS: COLORS, DEFAULTS: DEFAULTS, STAGES: STAGES, enrich: enrich,
     HAIR: HAIR, FACIAL: FACIAL, TOPS: TOPS, BOTTOMS: BOTTOMS, BODY: BODY, EYES: EYES, GLASSES: GLASSES,
     hexToRgb: hexToRgb, rgbToHex: rgbToHex, lighten: lighten, nearest: nearest,
     normalize: normalize, render: render, renderRGBA: renderRGBA, suggestColors: suggestColors, randomOptions: randomOptions

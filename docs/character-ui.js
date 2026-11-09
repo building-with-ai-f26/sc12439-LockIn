@@ -38,7 +38,8 @@
   }
 
   // Draw the sprite onto a canvas at integer scale, optionally centred in a square.
-  function draw(canvas, opts, scale, square) {
+  // stage (1-3, optional) draws the evolved look from Sprite.STAGES.
+  function draw(canvas, opts, scale, square, stage) {
     var w = S.WIDTH * scale, h = S.HEIGHT * scale;
     var size = square ? Math.max(w, h) : null;
     canvas.width = square ? size : w; canvas.height = square ? size : h;
@@ -47,7 +48,7 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     var small = document.createElement("canvas"); small.width = S.WIDTH; small.height = S.HEIGHT;
     var id = small.getContext("2d").createImageData(S.WIDTH, S.HEIGHT);
-    id.data.set(S.renderRGBA(opts));
+    id.data.set(S.renderRGBA(opts, stage || 1));
     small.getContext("2d").putImageData(id, 0, 0);
     var ox = square ? Math.floor((size - w) / 2) : 0, oy = square ? size - h : 0;
     ctx.drawImage(small, ox, oy, w, h);
@@ -57,6 +58,7 @@
     ensureCSS();
     cfg = cfg || {};
     var opts = S.normalize(cfg.initial || {});
+    var stage = cfg.stage || 1;   // preview only; never saved with the options
     var root = el("div", "cb");
     var preview = el("canvas", "cb-preview");
     var side = el("div");
@@ -112,7 +114,7 @@
     colorRow("SHOES", "shoesColor", S.COLORS.shoes);
 
     function update() {
-      draw(preview, opts, 10, false);
+      draw(preview, opts, 10, false, stage);
       side.querySelectorAll("[data-key]").forEach(function (b) {
         var v = opts[b.dataset.key]; b.classList.toggle("on", String(v) === b.dataset.val);
       });
@@ -147,6 +149,7 @@
     var api = {
       getOptions: function () { return JSON.parse(JSON.stringify(opts)); },
       setOptions: function (o) { opts = S.normalize(o); update(); },
+      setStage: function (n) { stage = n; update(); },
       randomize: function () { opts = S.normalize(S.randomOptions()); update(); },
       suggestFromFile: suggestFromFile,
       // PNG data URL. scale 1 → 24×24 square with the 15×24 sprite centred (game piece); bigger for downloads.

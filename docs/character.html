@@ -21,6 +21,8 @@
   .panel { background: var(--panel); border: 3px solid var(--border); box-shadow: 6px 6px 0 #000; padding: 20px; margin-bottom: 16px; }
   .btn { font-size: 10px; padding: 12px 14px; border: 3px solid #000; box-shadow: 4px 4px 0 #000; background: var(--gold); color: #000; cursor: pointer; text-decoration: none; display: inline-block; line-height: 1; }
   .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+  .btn.stage { background: var(--panel); color: var(--ink); border-color: var(--border); font-size: 9px; padding: 10px 12px; }
+  .btn.stage.on { background: var(--gold); color: #000; border-color: #000; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
   input[type=text] { background: #0c0b1d; color: var(--ink); border: 2px solid var(--border); padding: 10px; font: inherit; width: 200px; }
   footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
@@ -33,12 +35,18 @@
   <p class="tag">Pick your look. Upload a photo if you want it to guess your skin and hair colour. Nothing leaves your browser.</p>
   <div class="panel">
     <div id="builder"></div>
+    <div class="row" style="margin-bottom:14px">
+      <span class="pixel" style="font-size:9px;color:var(--muted)">PREVIEW EVOLUTION</span>
+      <button class="btn stage on" data-stage="1" type="button">1 ROOKIE</button>
+      <button class="btn stage" data-stage="2" type="button">2 RISING</button>
+      <button class="btn stage" data-stage="3" type="button">3 LOCKED IN</button>
+    </div>
     <div class="row">
       <input type="text" id="name" maxlength="16" placeholder="NAME FOR THE FILE">
       <a class="btn" id="download" download="8bit-me.png" href="#">DOWNLOAD PNG</a>
       <a class="btn" style="background:var(--green)" href="game.html">USE IT IN THE GAME ▶</a>
     </div>
-    <p class="tag" style="margin:12px 0 0;font-size:13px">In the game, this same builder appears when you lock in your goal, so your piece shows up on the board and in the standings.</p>
+    <p class="tag" style="margin:12px 0 0;font-size:13px">In the game you build this character first, then create or join a group. Three hit weeks in a row evolves it to RISING, seven to LOCKED IN. Break the streak and it devolves.</p>
   </div>
   <footer>Build 2 · <a href="prototype.html">old photo pixelator</a> · <a href="https://github.com/building-with-ai-f26/sc12439-LockIn">source</a></footer>
 </div>
@@ -55,6 +63,12 @@
     a.download = (n ? n.replace(/[^a-z0-9]+/gi, "-").toLowerCase() : "8bit-me") + ".png";
   }
   document.getElementById("name").addEventListener("input", refreshDownload);
+  document.querySelectorAll(".btn.stage").forEach(function (b) {
+    b.addEventListener("click", function () {
+      api.setStage(+b.dataset.stage);
+      document.querySelectorAll(".btn.stage").forEach(function (x) { x.classList.toggle("on", x === b); });
+    });
+  });
   refreshDownload();
   if (/[?&]demo=1/.test(location.search)) api.setOptions({ hair: "pompadour", hairColor: "#1A1A1A", skin: "#FFE0BD", glasses: true, top: "jacket", topColor: "#1A1A1A", shirtColor: "#F4F1FF", bottom: "pants", bottomColor: "#1F5FA8", shoesColor: "#1A1A1A" });
 })();
