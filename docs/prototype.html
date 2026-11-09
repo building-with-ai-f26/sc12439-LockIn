@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lock-In Party · 8-Bit Me</title>
+<meta name="description" content="Turn a photo into an 8-bit game character. Runs entirely in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14122b;
+    --panel: #1f1c42;
+    --ink: #f4f1ff;
+    --muted: #b7b0e0;
+    --gold: #ffd23f;
+    --green: #3ddc84;
+    --red: #ff5c7a;
+    --blue: #4cc9f0;
+    --border: #3a3575;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 "Inter", system-ui, sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 40px 16px 80px; }
+  h1, h2, .pixel, .btn, select, .chip { font-family: "Press Start 2P", monospace; }
+  h1 { font-size: clamp(20px, 4.5vw, 30px); line-height: 1.4; color: var(--gold); margin: 0 0 12px; text-shadow: 4px 4px 0 #000; }
+  h2 { font-size: 12px; color: var(--blue); margin: 0 0 14px; letter-spacing: 1px; }
+  p { margin: 0 0 12px; }
+  .tag { color: var(--muted); margin-bottom: 20px; }
+  a { color: var(--blue); }
+  .back { font-size: 10px; margin-bottom: 14px; display: inline-block; }
+  .panel { background: var(--panel); border: 3px solid var(--border); box-shadow: 6px 6px 0 #000; padding: 20px; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+
+  .drop { display: block; border: 3px dashed var(--border); padding: 28px 16px; text-align: center; color: var(--muted); cursor: pointer; background: #0c0b1d; }
+  .drop.over { border-color: var(--gold); color: var(--gold); }
+  .drop input { display: none; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+
+  .btn { font-size: 10px; padding: 12px 14px; border: 3px solid #000; box-shadow: 4px 4px 0 #000; background: var(--gold); color: #000; cursor: pointer; text-decoration: none; display: inline-block; line-height: 1; }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+  .btn.alt { background: var(--panel); color: var(--ink); border-color: var(--border); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  label.ctl { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center; margin-bottom: 12px; font-size: 14px; }
+  label.ctl .pixel { font-size: 9px; color: var(--muted); }
+  label.ctl output { font-size: 12px; color: var(--gold); min-width: 42px; text-align: right; font-family: "Press Start 2P", monospace; }
+  select { background: #0c0b1d; color: var(--ink); border: 2px solid var(--border); font-size: 9px; padding: 8px; }
+  input[type=range] { width: 100%; accent-color: var(--gold); }
+  input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--gold); }
+  input[type=text] { background: #0c0b1d; color: var(--ink); border: 2px solid var(--border); padding: 8px; font: inherit; width: 100%; }
+
+  .card { background: #0c0b1d; border: 3px solid var(--border); padding: 16px; text-align: center; }
+  canvas#out { width: 100%; max-width: 384px; aspect-ratio: 1; image-rendering: pixelated; image-rendering: crisp-edges; display: block; margin: 0 auto; background: #000; border: 3px solid #000; box-shadow: 6px 6px 0 #000; }
+  .name { font-family: "Press Start 2P", monospace; font-size: 12px; color: var(--gold); margin-top: 16px; min-height: 16px; word-break: break-word; }
+  .swatches { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .swatches i { width: 16px; height: 16px; border: 2px solid #000; display: block; }
+  .thumb { width: 100%; max-height: 180px; object-fit: contain; display: none; margin-top: 12px; border: 2px solid var(--border); background: #000; }
+  .status { font-size: 13px; color: var(--muted); margin-top: 8px; min-height: 20px; }
+  .status.err { color: var(--red); }
+  footer { margin-top: 48px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back pixel" href="./">◀ BACK TO PRODUCT PAGE</a>
+  <h1>8-BIT ME</h1>
+  <p class="tag">Upload a photo and get your game piece for the board. Everything happens in your browser. Nothing is uploaded anywhere.</p>
+
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <h2>▶ 1. PHOTO</h2>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="image/*">
+          <div class="pixel" style="font-size:10px;margin-bottom:8px;">DROP A PHOTO HERE</div>
+          <div>or tap to choose one. A clear face shot works best.</div>
+        </label>
+        <div class="row">
+          <button class="btn alt" id="sample" type="button">USE SAMPLE IMAGE</button>
+        </div>
+        <img id="thumb" class="thumb" alt="Your uploaded photo">
+        <div class="status" id="status"></div>
+      </div>
+
+      <div class="panel">
+        <h2>▶ 2. TUNE</h2>
+        <label class="ctl"><span class="pixel">GRID</span>
+          <input type="range" id="grid" min="0" max="4" step="1" value="2"><output id="gridOut">32</output></label>
+        <label class="ctl"><span class="pixel">PALETTE</span>
+          <select id="palette"></select><span></span></label>
+        <label class="ctl"><span class="pixel">DITHER</span>
+          <input type="checkbox" id="dither"><span></span></label>
+        <label class="ctl"><span class="pixel">ZOOM</span>
+          <input type="range" id="zoom" min="1" max="3" step="0.05" value="1"><output id="zoomOut">1.0x</output></label>
+        <label class="ctl"><span class="pixel">LEFT/RIGHT</span>
+          <input type="range" id="px" min="0" max="1" step="0.01" value="0.5"><output id="pxOut">50%</output></label>
+        <label class="ctl"><span class="pixel">UP/DOWN</span>
+          <input type="range" id="py" min="0" max="1" step="0.01" value="0.5"><output id="pyOut">50%</output></label>
+        <label class="ctl"><span class="pixel">NAME</span>
+          <input type="text" id="name" maxlength="16" placeholder="PLAYER 1"><span></span></label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>▶ 3. YOUR CHARACTER</h2>
+      <div class="card">
+        <canvas id="out" width="512" height="512"></canvas>
+        <div class="name" id="nameOut"></div>
+        <div class="swatches" id="swatches"></div>
+      </div>
+      <div class="row">
+        <a class="btn" id="download" download="8bit-me.png" href="#" aria-disabled="true">DOWNLOAD PNG</a>
+      </div>
+      <p class="status">Tip: a 32 grid with the PORTRAIT palette is the sweet spot for faces. Turn on DITHER for a more textured retro look.</p>
+    </div>
+  </div>
+
+  <footer>Build 1 throwaway prototype · <a href="https://github.com/building-with-ai-f26/sc12439-LockIn">source on GitHub</a></footer>
+</div>
+
+<script src="pixelate.js"></script>
+<script>
+(function () {
+  "use strict";
+  var GRIDS = [16, 24, 32, 48, 64];
+  var $ = function (id) { return document.getElementById(id); };
+  var img = null;            // the loaded HTMLImageElement
+  var out = $("out");
+  var octx = out.getContext("2d");
+
+  // Fill the palette dropdown from the shared palette table.
+  Object.keys(Pixelate.PALETTES).forEach(function (key) {
+    var o = document.createElement("option");
+    o.value = key; o.textContent = Pixelate.PALETTES[key].label;
+    if (key === "portrait") o.selected = true;
+    $("palette").appendChild(o);
+  });
+
+  function setStatus(msg, isErr) {
+    $("status").textContent = msg || "";
+    $("status").className = "status" + (isErr ? " err" : "");
+  }
+
+  // Shrinking a big photo straight to 32px makes the browser skip most
+  // pixels. Halving repeatedly averages properly and looks much better.
+  function downscale(source, targetSize) {
+    var w = source.width, h = source.height;
+    var cur = source;
+    while (w / 2 >= targetSize && h / 2 >= targetSize) {
+      w = Math.floor(w / 2); h = Math.floor(h / 2);
+      var c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      var cx = c.getContext("2d");
+      cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = "high";
+      cx.drawImage(cur, 0, 0, w, h);
+      cur = c;
+    }
+    return cur;
+  }
+
+  function render() {
+    if (!img) return;
+    var n = GRIDS[+$("grid").value];
+    var zoom = +$("zoom").value;
+    var px = +$("px").value, py = +$("py").value;
+    var paletteKey = $("palette").value;
+    var dither = $("dither").checked;
+
+    // 1. Pick a square window on the source photo, controlled by zoom and position.
+    var side = Math.min(img.naturalWidth, img.naturalHeight) / zoom;
+    var cx = Math.min(Math.max(img.naturalWidth * px, side / 2), img.naturalWidth - side / 2);
+    var cy = Math.min(Math.max(img.naturalHeight * py, side / 2), img.naturalHeight - side / 2);
+    var crop = document.createElement("canvas");
+    crop.width = crop.height = Math.round(side);
+    crop.getContext("2d").drawImage(img, cx - side / 2, cy - side / 2, side, side, 0, 0, crop.width, crop.height);
+
+    // 2. Shrink it to the pixel grid.
+    var stepped = downscale(crop, n);
+    var small = document.createElement("canvas");
+    small.width = small.height = n;
+    var sctx = small.getContext("2d", { willReadFrequently: true });
+    sctx.imageSmoothingEnabled = true; sctx.imageSmoothingQuality = "high";
+    sctx.drawImage(stepped, 0, 0, n, n);
+
+    // 3. Snap every pixel to the palette.
+    var id;
+    try { id = sctx.getImageData(0, 0, n, n); }
+    catch (e) { setStatus("Can't read the sample image when the page is opened as a file. Serve it over http or upload your own photo.", true); return; }
+    var q = Pixelate.quantize(id.data, n, n, { palette: paletteKey === "original" ? null : paletteKey, dither: dither });
+    id.data.set(q);
+    sctx.putImageData(id, 0, 0);
+
+    // 4. Blow it back up with hard pixel edges.
+    octx.imageSmoothingEnabled = false;
+    octx.clearRect(0, 0, out.width, out.height);
+    octx.drawImage(small, 0, 0, out.width, out.height);
+
+    // Swatches + download link.
+    var sw = $("swatches"); sw.innerHTML = "";
+    var colors = Pixelate.PALETTES[paletteKey].colors || [];
+    colors.forEach(function (hex) { var i = document.createElement("i"); i.style.background = hex; sw.appendChild(i); });
+    var dl = $("download");
+    dl.href = out.toDataURL("image/png");
+    dl.removeAttribute("aria-disabled");
+    var name = $("name").value.trim();
+    dl.download = (name ? name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() : "8bit-me") + ".png";
+  }
+
+  function loadFromSrc(src, label) {
+    var im = new Image();
+    im.onload = function () {
+      img = im;
+      $("thumb").src = src; $("thumb").style.display = "block";
+      setStatus(label + " · " + im.naturalWidth + "×" + im.naturalHeight);
+      render();
+    };
+    im.onerror = function () { setStatus("Couldn't load that image.", true); };
+    im.src = src;
+  }
+
+  function loadFile(file) {
+    if (!file || !file.type.match(/^image\//)) { setStatus("That doesn't look like an image.", true); return; }
+    var reader = new FileReader();
+    reader.onload = function (e) { loadFromSrc(e.target.result, file.name); };
+    reader.readAsDataURL(file);
+  }
+
+  // Wiring.
+  $("file").addEventListener("change", function (e) { loadFile(e.target.files[0]); });
+  var drop = $("drop");
+  ["dragenter", "dragover"].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
+  ["dragleave", "drop"].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove("over"); }); });
+  drop.addEventListener("drop", function (e) { loadFile(e.dataTransfer.files[0]); });
+  $("sample").addEventListener("click", function () { loadFromSrc("images/prototype.png", "sample image"); });
+
+  ["grid", "zoom", "px", "py"].forEach(function (id) { $(id).addEventListener("input", function () { updateOutputs(); render(); }); });
+  $("palette").addEventListener("change", render);
+  $("dither").addEventListener("change", render);
+  $("name").addEventListener("input", function () { $("nameOut").textContent = $("name").value.toUpperCase(); render(); });
+
+  function updateOutputs() {
+    $("gridOut").textContent = GRIDS[+$("grid").value];
+    $("zoomOut").textContent = (+$("zoom").value).toFixed(1) + "x";
+    $("pxOut").textContent = Math.round($("px").value * 100) + "%";
+    $("pyOut").textContent = Math.round($("py").value * 100) + "%";
+  }
+  updateOutputs();
+
+  // ?demo=1 auto-loads the sample so the page can be screenshotted.
+  if (/[?&]demo=1/.test(location.search)) { $("name").value = "PLAYER 1"; $("nameOut").textContent = "PLAYER 1"; $("sample").click(); }
+})();
+</script>
+</body>
+</html>

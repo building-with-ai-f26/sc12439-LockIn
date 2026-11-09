@@ -141,8 +141,9 @@
 
   <h2>▶ PROTOTYPE</h2>
   <div class="panel">
-    <img class="shot" src="images/prototype.png" alt="Placeholder: meme of a gamer leaning in toward the screen">
-    <p style="margin-top:12px;" class="todo">TODO: replace this placeholder with a prototype screenshot or GIF saved as docs/images/prototype.png.</p>
+    <p><strong>8-Bit Me.</strong> Upload a photo and it becomes your game piece for the board: a pixel-art character snapped to a retro palette. Runs entirely in the browser, nothing is uploaded.</p>
+    <p style="margin-bottom:16px;"><a class="chip" style="text-decoration:none;color:var(--gold);" href="prototype.html">▶ TRY THE PROTOTYPE</a></p>
+    <img class="shot" src="images/prototype-screenshot.png" alt="Screenshot of the 8-Bit Me prototype turning a photo into a pixel-art character">
   </div>
 
   <h2>▶ BUILD LOG</h2>
@@ -153,7 +154,7 @@
         <ul>
           <li>Repo created from the class template and published with GitHub Pages from <code>main/docs</code>. The site link is set in the repo's About section.</li>
           <li>PRD v1 is live on this page: reachable user, before/after workflow, the five-step core workflow, three non-goals, and one open question.</li>
-          <li>No app code yet. The prototype slot above still shows a placeholder image.</li>
+          <li>First throwaway prototype, <a href="prototype.html">8-Bit Me</a>: upload a photo, pick a grid size and retro palette, download your pixel-art game piece. Pure browser code, no server, no keys, unit-tested with Node.</li>
         </ul>
       </td></tr>
       <tr><td>What I learned</td><td>How GitHub Pages deploys a static site straight from the <code>/docs</code> folder on <code>main</code>: every push to the branch triggers a new build, and the site updates within about a minute.</td></tr>
@@ -161,7 +162,7 @@
         <ul>
           <li>Rewrote the template page as a themed product page. That dropped the PostHog snippet placeholder and the per-build log entries; PostHog needs to come back in Build 2.</li>
           <li>Decided v1 check-ins run on the honor system instead of photo proof or friend approval, and recorded that as the open question to watch.</li>
-          <li>The prototype screenshot is still a placeholder; the real prototype did not land in the repo this week.</li>
+          <li>Scoped the prototype down from "AI redraws you as a character" to "pixelate and palette-snap your photo" so it could ship with $0 and no API key. The AI redraw is a candidate for a later build.</li>
         </ul>
       </td></tr>
       <tr><td>Costs</td><td>$0. Free tiers only (GitHub, GitHub Pages).</td></tr>

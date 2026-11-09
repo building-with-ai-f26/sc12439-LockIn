@@ -3,15 +3,15 @@
 > Give this file to your coding agent and check that it is using these instructions. Keep the stack, commands, and ground rules current.
 
 ## 1. Project Overview
-- **What this repo builds:** [1–2 sentence summary]
+- **What this repo builds:** Lock-In Party, an 8-bit party board game where a friend group locks in 90-day goals and weekly check-ins move their pieces around a board. Build 1 ships the product page plus a throwaway prototype, 8-Bit Me, that turns a photo into a pixel-art game piece.
 - **Primary user & core workflow:** [See the living PRD in `docs/index.html`]
-- **Tech stack:** [e.g., Python 3.12 / FastAPI / Next.js / SQLite / OpenRouter API]
+- **Tech stack:** Static HTML/CSS/JS in `docs/`, published with GitHub Pages. Node 23 for tests. No backend yet.
 
 ## 2. Commands
-- **Install dependencies:** `[e.g., npm install / uv sync]`
-- **Run locally:** `[e.g., npm run dev]`
-- **Run deterministic tests:** `[e.g., pytest / npm test]`
-- **Run model evals:** `[e.g., python tests/eval.py]`
+- **Install dependencies:** none (no packages yet)
+- **Run locally:** `python3 -m http.server 8000 --directory docs` then open http://localhost:8000/prototype.html
+- **Run deterministic tests:** `node --test tests/pixelate.test.cjs`
+- **Run model evals:** not applicable yet (no model calls in Build 1)
 
 ## 3. Non-Negotiable Engineering Rules
 1. **Plan before coding:** Before touching multiple files, propose a brief plan and wait for approval.
