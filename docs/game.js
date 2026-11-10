@@ -81,7 +81,7 @@
     if (!profile) { openCharacter(next); return; }   // step 1 first, for a brand-new identity
     if (!Monkey.isMonkey(profile.avatar_options)) {  // built before the monkey update: pick a monkey once
       openCharacter(next);
-      $("charIntro").textContent = "New look: everyone is a monkey now. Pick your hair and colours once; your groups, goals and check-ins are untouched.";
+      $("charIntro").textContent = "New look: the characters got a redesign. Pick your hair and colours once; your groups, goals and check-ins are untouched.";
       return;
     }
     await next();

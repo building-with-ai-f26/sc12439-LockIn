@@ -6,11 +6,11 @@
 - **Pod:** TODO
 - **Product Page & Living PRD:** https://building-with-ai-f26.github.io/sc12439-LockIn/
 - **Play:** https://building-with-ai-f26.github.io/sc12439-LockIn/game.html
-- **Monkey builder:** https://building-with-ai-f26.github.io/sc12439-LockIn/character.html
+- **Character builder:** https://building-with-ai-f26.github.io/sc12439-LockIn/character.html
 
 ## How the game works
 
-1. **Pick your monkey.** Everyone is a monkey. Choose a hair style and your fur, hair and outfit colours. Stage 1 is an Orangupe; it evolves into a Primacho and then a Mega-Simian.
+1. **Build your character.** Everyone shares the same body per stage. Choose a hair style and your body, hair and outfit colours. Stage 1 is an Orangupe; it evolves into a Primacho and then a Mega-Simian.
 2. **Create or join a group** with an invite code or link.
 3. **Lock in your goals** for 90 days: workouts per week, 10,000-step days, reading days, dry days, in any combination, each with its own weekly target. They cannot be changed afterwards.
 4. **Choose how you track.** Connect a Whoop and the nightly sync logs workouts of 30+ minutes (walks excluded) for you; Apple Health is coming later; or tap it in by hand. Steps, reading and dry days are always tapped in, once per day.

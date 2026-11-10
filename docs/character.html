@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lock-In Party · Monkey Builder</title>
-<meta name="description" content="Pick your monkey for Lock-In Party: hair, fur, outfit, and see all three evolution stages.">
+<title>Lock-In Party · Character Builder</title>
+<meta name="description" content="Build your Lock-In Party character: hair, body and outfit colours, and see all three evolution stages.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -31,16 +31,16 @@
 <body>
 <div class="wrap">
   <a class="back pixel" href="./">◀ LOCK-IN PARTY</a>
-  <h1>PICK YOUR MONKEY</h1>
-  <p class="tag">Everyone in Lock-In Party is a monkey. Choose hair, fur and outfit colours; the preview shows all three evolution stages. Nothing leaves your browser.</p>
+  <h1>BUILD YOUR CHARACTER</h1>
+  <p class="tag">Build your Lock-In Party character. Choose hair, body and outfit colours; the preview shows all three evolution stages. Nothing leaves your browser.</p>
   <div class="panel">
     <div id="builder"></div>
     <div class="row">
       <input type="text" id="name" maxlength="16" placeholder="NAME FOR THE FILE">
-      <a class="btn" id="download" download="my-monkey.png" href="#">DOWNLOAD PNG</a>
+      <a class="btn" id="download" download="my-character.png" href="#">DOWNLOAD PNG</a>
       <a class="btn" style="background:var(--green)" href="game.html">USE IT IN THE GAME ▶</a>
     </div>
-    <p class="tag" style="margin:12px 0 0;font-size:13px">In the game you pick your monkey first, then create or join a group and lock in goals. Three hit weeks in a row evolves an ORANGUPE into a PRIMACHO, seven into a MEGA-SIMIAN. Break the streak and it devolves.</p>
+    <p class="tag" style="margin:12px 0 0;font-size:13px">In the game you build your character first, then create or join a group and lock in goals. Three hit weeks in a row evolves an ORANGUPE into a PRIMACHO, seven into a MEGA-SIMIAN. Break the streak and it devolves.</p>
   </div>
   <footer>Build 2 · <a href="prototype.html">old photo pixelator</a> · <a href="https://github.com/building-with-ai-f26/sc12439-LockIn">source</a></footer>
 </div>
@@ -56,7 +56,7 @@
     var a = document.getElementById("download");
     api.getDataURL(256).then(function (url) { a.href = url; });
     var n = document.getElementById("name").value.trim();
-    a.download = (n ? n.replace(/[^a-z0-9]+/gi, "-").toLowerCase() : "my-monkey") + ".png";
+    a.download = (n ? n.replace(/[^a-z0-9]+/gi, "-").toLowerCase() : "my-character") + ".png";
   }
   document.getElementById("download").addEventListener("click", function () { Analytics.track("character_downloaded", { options: api.getOptions() }); });
   document.getElementById("name").addEventListener("input", refreshDownload);

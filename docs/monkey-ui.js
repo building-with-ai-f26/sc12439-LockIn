@@ -40,7 +40,7 @@
         "</div>" +
         "<div>" +
           '<span class="lbl">HAIR</span><div class="hairs" data-hairs></div>' +
-          '<span class="lbl">FUR</span><div class="sw" data-sw="fur"></div>' +
+          '<span class="lbl">BODY</span><div class="sw" data-sw="fur"></div>' +
           '<span class="lbl">HAIR COLOUR</span><div class="sw" data-sw="hairColor"></div>' +
           '<span class="lbl">OUTFIT</span><div class="sw" data-sw="outfit"></div>' +
           '<div class="rnd"><button type="button" class="btn alt" data-random>🎲 RANDOM</button></div>' +
