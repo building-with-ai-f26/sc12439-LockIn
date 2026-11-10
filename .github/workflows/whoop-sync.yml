@@ -1,8 +1,10 @@
 name: Whoop nightly sync
 
-# Fires at 11:59 PM in New York all year. GitHub cron is UTC only, so we
-# schedule both the EDT and EST instants and let the script's timezone
-# guard skip the one that is 10:59 PM or 12:59 AM.
+# Aimed at 11:59 PM in New York. GitHub cron is UTC only, so both the EDT
+# and EST instants are scheduled. GitHub also starts scheduled jobs late,
+# sometimes by hours (10 Nov 2026: 8 hours), so scheduled runs always sync
+# instead of checking the clock: the sync is idempotent (check-ins are
+# deduped by Whoop id), so running twice or late is harmless.
 on:
   schedule:
     - cron: "59 3 * * *"   # 23:59 EDT (Mar–Nov)
@@ -27,7 +29,7 @@ jobs:
         with:
           node-version: 22
       - name: Pull Whoop workouts into Supabase
-        run: node scripts/whoop-sync.mjs ${{ github.event_name == 'workflow_dispatch' && inputs.force && '--force' || '' }}
+        run: node scripts/whoop-sync.mjs ${{ (github.event_name == 'schedule' || inputs.force) && '--force' || '' }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
