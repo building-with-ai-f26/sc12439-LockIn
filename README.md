@@ -6,15 +6,15 @@
 - **Pod:** TODO
 - **Product Page & Living PRD:** https://building-with-ai-f26.github.io/sc12439-LockIn/
 - **Play:** https://building-with-ai-f26.github.io/sc12439-LockIn/game.html
-- **Character builder:** https://building-with-ai-f26.github.io/sc12439-LockIn/character.html
+- **Monkey builder:** https://building-with-ai-f26.github.io/sc12439-LockIn/character.html
 
 ## How the game works
 
-1. **Build your character.** A full-body 15×24 pixel sprite: hair, face, glasses, top, bottoms, shoes, colours. Upload a photo and it suggests your skin and hair tone.
+1. **Pick your monkey.** Everyone is a monkey. Choose a hair style and your fur, hair and outfit colours. Stage 1 is an Orangupe; it evolves into a Primacho and then a Mega-Simian.
 2. **Create or join a group** with an invite code or link.
 3. **Lock in your goals** for 90 days: workouts per week, 10,000-step days, reading days, dry days, in any combination, each with its own weekly target. They cannot be changed afterwards.
 4. **Choose how you track.** Connect a Whoop and the nightly sync logs workouts of 30+ minutes (walks excluded) for you; Apple Health is coming later; or tap it in by hand. Steps, reading and dry days are always tapped in, once per day.
-5. **Keep your LP up.** Everyone starts at 50 Lock-in Power. Hit every goal in a week, +10. Miss any, −15. Three hit weeks in a row evolves you to RISING, seven to LOCKED IN. Break the streak or hit 0 LP and you devolve.
+5. **Keep your LP up.** Everyone starts at 50 Lock-in Power. Hit every goal in a week, +10. Miss any, −15. Three hit weeks in a row evolves you to Primacho, seven to Mega-Simian. Break the streak or hit 0 LP and you devolve.
 6. **Highest LP on day 90 wins.** The leaderboard shows everyone's stage, LP and streak.
 7. **Several groups, one character.** Switch between your groups from the play screen or start another. Whoever created a group can rename it, move the start date before day one, remove a member or delete it.
 
@@ -24,7 +24,7 @@ All game math is derived from check-in rows; nothing is stored as state. See `do
 
 | File / folder | Purpose |
 | --- | --- |
-| [`docs/`](./docs/) | The whole site, served by GitHub Pages: product page + PRD (`index.html`), game (`game.html`, `game.js`), rules (`game-rules.js`), sprite system (`sprite.js`, `character-ui.js`), builder (`character.html`), Whoop callback, privacy page, analytics. |
+| [`docs/`](./docs/) | The whole site, served by GitHub Pages: product page + PRD (`index.html`), game (`game.html`, `game.js`), rules (`game-rules.js`), monkey renderer and builder (`monkey.js`, `monkey-ui.js`, art in `images/monkeys/`, spec in `MONKEYS.md`), builder page (`character.html`), legacy sprite system (`sprite.js`), Whoop callback, privacy page, analytics. |
 | [`supabase/`](./supabase/) | Database schema and migrations (`schema.sql`, `002-profiles.sql`, `003-whoop.sql`, `004-goals.sql`, `005-groups.sql`) and setup steps. |
 | [`scripts/`](./scripts/) | Whoop nightly sync, one-time Whoop connect, live smoke test. |
 | [`.github/workflows/whoop-sync.yml`](./.github/workflows/whoop-sync.yml) | Cron that runs the Whoop sync at 11:59 PM Eastern. |

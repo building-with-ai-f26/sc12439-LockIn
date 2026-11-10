@@ -47,6 +47,7 @@
   .avatar.lg { width: 96px; height: 96px; }
   .step { font-size: 9px; color: var(--muted); margin-bottom: 10px; } .step span { color: var(--green); }
   .piece.me { background: #0c0b1d; border: 3px solid #000; box-shadow: 4px 4px 0 #000; }
+  .evo { font-size: 8px; color: var(--muted); }
   .stat { text-align: center; }
   .stat .big { font-size: 22px; color: var(--gold); display: block; margin-bottom: 6px; }
   .stat .pixel { font-size: 8px; color: var(--muted); }
@@ -67,7 +68,7 @@
 
   /* LP (Lock-in Power) health bar */
   .lp { margin: 14px 0 4px; }
-  .lp .lp-head { display: flex; justify-content: space-between; font-family: "Press Start 2P", monospace; font-size: 10px; margin-bottom: 6px; }
+  .lp .lp-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px; font-family: "Press Start 2P", monospace; font-size: 10px; margin-bottom: 6px; }
   .lp .lp-head b { color: var(--gold); }
   .lp .lp-bar { height: 22px; border: 3px solid #000; background: #0c0b1d; box-shadow: 3px 3px 0 #000; }
   .lp .lp-fill { height: 100%; width: 50%; background: var(--green); transition: width .4s steps(10); }
@@ -76,13 +77,13 @@
   .lp.sm { margin: 6px 0 0; } .lp.sm .lp-bar { height: 12px; border-width: 2px; box-shadow: none; }
 
   .piece { image-rendering: pixelated; image-rendering: crisp-edges; display: block; flex: none; }
-  .piece.me { width: 90px; height: 144px; }
-  .piece.row { width: 45px; height: 72px; }
+  .piece.me { width: 150px; height: 150px; }
+  .piece.row { width: 64px; height: 64px; }
 
   table { width: 100%; border-collapse: collapse; }
   td { padding: 10px 6px; border-bottom: 2px dashed var(--border); vertical-align: middle; }
   td.n { font-family: "Press Start 2P", monospace; font-size: 10px; color: var(--gold); text-align: right; white-space: nowrap; }
-  td.pc { width: 50px; }
+  td.pc { width: 70px; }
   tr.me td { background: rgba(255, 210, 63, .08); }
   .stage { font-family: "Press Start 2P", monospace; font-size: 8px; padding: 3px 6px; border: 2px solid #000; background: var(--border); color: var(--ink); display: inline-block; vertical-align: middle; }
   .stage.s2 { background: var(--blue); color: #000; } .stage.s3 { background: var(--gold); color: #000; }
@@ -134,10 +135,10 @@
     <p class="muted">Lock in 90-day goals with your friends: workouts, steps, reading, no drinking. Hit your week to gain Lock-in Power and evolve. Miss it and you lose LP and can devolve. Highest LP on day 90 wins.</p>
     <p class="pixel" style="font-size:9px" id="homeBack" hidden><a href="#" id="homeBackLink">◀ BACK TO MY GAME</a></p>
     <div class="you">
-      <canvas class="piece row" id="homePiece" width="15" height="24"></canvas>
+      <canvas class="piece row" id="homePiece"></canvas>
       <div>
         <div class="pixel" style="font-size:11px;color:var(--gold)" id="homeName"></div>
-        <a href="#" id="homeEdit" class="pixel" style="font-size:8px">EDIT CHARACTER</a>
+        <a href="#" id="homeEdit" class="pixel" style="font-size:8px">EDIT MONKEY</a>
       </div>
     </div>
     <div class="grid">
@@ -161,8 +162,8 @@
   <!-- ONBOARDING STEP 1: build your character -->
   <section data-view="character" hidden>
     <div class="step pixel">STEP 1 OF 4 · <span>CHARACTER</span></div>
-    <h1>BUILD YOUR CHARACTER</h1>
-    <p class="muted" id="charIntro">This is you in the game. Upload a photo to pick your colours, or hit RANDOM and tweak. It evolves when you hit your goal three weeks in a row.</p>
+    <h1>PICK YOUR MONKEY</h1>
+    <p class="muted" id="charIntro">Everyone starts as an ORANGUPE. Choose your hair and colours; the body is the same for all. Three hit weeks in a row evolves you into a PRIMACHO, seven into a MEGA-SIMIAN.</p>
     <div class="panel">
       <label class="f" style="max-width:360px"><span class="pixel">YOUR NAME</span><input type="text" id="pName" maxlength="16" placeholder="Sam"></label>
       <div id="builder"></div>
@@ -182,11 +183,11 @@
       <div class="panel">
         <h2>▶ YOUR PIECE</h2>
         <div class="row" style="align-items:flex-start">
-          <canvas class="piece me" id="piecePreview" width="15" height="24"></canvas>
+          <canvas class="piece me" id="piecePreview"></canvas>
           <div>
             <div class="pixel" style="font-size:14px;color:var(--gold);margin-bottom:6px" id="pieceName"></div>
-            <p class="muted" style="font-size:13px">Stage 1, ROOKIE. Three hit weeks in a row and it evolves.</p>
-            <button class="btn alt" id="editCharBtn" type="button">◀ CHANGE CHARACTER</button>
+            <p class="muted" style="font-size:13px">Stage 1, ORANGUPE. The badges below it are the goals you pick here. Three hit weeks in a row and it evolves.</p>
+            <button class="btn alt" id="editCharBtn" type="button">◀ CHANGE MONKEY</button>
           </div>
         </div>
       </div>
@@ -194,7 +195,7 @@
         <h2>▶ PICK YOUR GOALS</h2>
         <div class="goals" id="goalCards"></div>
         <p class="muted" id="goalPreview"></p>
-        <p class="muted" style="font-size:13px">Rules: everyone starts at 50 LP. A week is hit only when every goal is met: +10 LP. Miss any, -15 LP. Three hit weeks in a row evolves you, seven makes you LOCKED IN. Break a streak or hit 0 LP and you devolve. Highest LP after 13 weeks wins.</p>
+        <p class="muted" style="font-size:13px">Rules: everyone starts at 50 LP. A week is hit only when every goal is met: +10 LP. Miss any, -15 LP. Three hit weeks in a row evolves you into a PRIMACHO, seven into a MEGA-SIMIAN. Break a streak or hit 0 LP and you devolve. Highest LP after 13 weeks wins.</p>
         <button class="btn green" id="lockBtn" type="button">LOCK IT IN</button>
         <div class="msg" id="lockMsg"></div>
       </div>
@@ -248,7 +249,7 @@
       <div>
         <div class="panel">
           <div class="row" style="align-items:flex-start">
-            <canvas class="piece me" id="mePiece" width="15" height="24"></canvas>
+            <canvas class="piece me" id="mePiece"></canvas>
             <div style="flex:1;min-width:180px">
               <div class="pixel" style="font-size:14px;color:var(--gold)" id="meName"></div>
               <div style="margin:6px 0"><span class="stage" id="meStage"></span></div>
@@ -304,7 +305,7 @@
     </div>
   </section>
 
-  <footer>Build 2 · workouts, steps, reading and dry days · <a href="privacy.html">privacy</a> · <a href="character.html">character builder</a> · <a href="#" id="signout">new identity</a></footer>
+  <footer>Build 2 · workouts, steps, reading and dry days · <a href="privacy.html">privacy</a> · <a href="character.html">monkey builder</a> · <a href="#" id="signout">new identity</a></footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
@@ -312,8 +313,8 @@
 <script src="analytics.js"></script>
 <script src="supabase-config.js"></script>
 <script src="whoop-config.js"></script>
-<script src="sprite.js"></script>
-<script src="character-ui.js"></script>
+<script src="monkey.js"></script>
+<script src="monkey-ui.js"></script>
 <script src="game-rules.js"></script>
 <script src="game.js"></script>
 </body>

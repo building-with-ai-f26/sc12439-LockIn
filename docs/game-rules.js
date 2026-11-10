@@ -36,7 +36,7 @@
     maxStage: 3
   };
 
-  var STAGES = ["ROOKIE", "RISING", "LOCKED IN"];   // index = stage - 1
+  var STAGES = ["ORANGUPE", "PRIMACHO", "MEGA-SIMIAN"];   // index = stage - 1; the monkey evolution line
 
   // The four goal types a player can lock in. per_week means workouts per
   // week for fitness and days per week for everything else.

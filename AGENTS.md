@@ -10,6 +10,7 @@
 ## 2. Commands
 - **Install dependencies:** none (no packages yet)
 - **Run locally:** `python3 -m http.server 8000 --directory docs` then open http://localhost:8000/game.html (needs `docs/supabase-config.js` filled in, see `supabase/README.md`; analytics need a key in `docs/posthog-config.js`, empty disables them) or http://localhost:8000/prototype.html
+- **Monkey art:** generated PNGs in `docs/images/monkeys/` with fixed reference hues; see `docs/MONKEYS.md`. `docs/monkey.js` recolours at draw time. Never hand-edit the PNGs.
 - **Run deterministic tests:** `node --test "tests/*.test.cjs"`
 - **Live smoke test (hits the real Supabase project; deletes its own group, leaves two Smoke* profiles):** `node scripts/smoke-live.mjs docs/supabase-config.js`
 - **Database changes:** new SQL goes in a numbered file under `supabase/` and is pasted into the Supabase SQL editor by the human; verify with a curl against the REST API before relying on it. Current: `005-groups.sql`.

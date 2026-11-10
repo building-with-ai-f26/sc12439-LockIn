@@ -17,7 +17,7 @@
   var challenge = null, me = null, players = [], goals = [], checkins = [];
   var myPlayers = [], myChallenges = [];   // every group I'm in (one player row each)
   var GROUP_KEY = "lockin.group";          // localStorage: the group I last looked at
-  var builder = null;         // CharacterUI instance, mounted on first use
+  var builder = null;         // MonkeyUI instance, mounted on first use
   var afterCharacter = null;  // where to go once the character is saved
   var lastSummary = null;     // to detect a hit or evolution after logging
   var trackingBack = null;    // where CONTINUE on the tracking view goes
@@ -36,14 +36,17 @@
   }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fail(id, error) { console.error(error); msg(id, (error && error.message) || String(error), "err"); }
-  // Draw a character onto a canvas at a stage; falls back to the stored PNG when we only have that.
-  function drawPiece(canvas, options, dataUrl, stage) {
-    if (options) { CharacterUI.draw(canvas, options, 1, false, stage || 1); return; }
-    canvas.width = Sprite.WIDTH; canvas.height = Sprite.HEIGHT;
-    var ctx = canvas.getContext("2d"); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Draw a monkey onto a canvas at a stage with its goal badges; a profile
+  // from before the monkey update only has a PNG, so draw that until they rebuild.
+  function drawPiece(canvas, options, dataUrl, stage, goalTypes) {
+    if (Monkey.isMonkey(options)) { Monkey.draw(canvas, options, stage || 1, goalTypes || []); return; }
+    var size = Math.round(canvas.clientWidth || 96);
+    canvas.width = size; canvas.height = size;
+    var ctx = canvas.getContext("2d"); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, size, size);
     if (!dataUrl) return;
-    var img = new Image(); img.onload = function () { ctx.drawImage(img, 0, 0, Sprite.WIDTH, Sprite.HEIGHT); }; img.src = dataUrl;
+    var img = new Image(); img.onload = function () { var h = size, w = size * img.width / img.height; ctx.drawImage(img, (size - w) / 2, 0, w, h); }; img.src = dataUrl;
   }
+  function goalTypesOf(player) { return myGoals(player).map(function (g) { return g.type; }); }
   function myGoals(player) { return goals.filter(function (g) { return g.player_id === player.id; }); }
 
   // ---------- boot ----------
@@ -76,6 +79,11 @@
         await enterGroup(pick);
       };
     if (!profile) { openCharacter(next); return; }   // step 1 first, for a brand-new identity
+    if (!Monkey.isMonkey(profile.avatar_options)) {  // built before the monkey update: pick a monkey once
+      openCharacter(next);
+      $("charIntro").textContent = "New look: everyone is a monkey now. Pick your hair and colours once; your groups, goals and check-ins are untouched.";
+      return;
+    }
     await next();
   }
 
@@ -122,7 +130,7 @@
   function openCharacter(then) {
     afterCharacter = then;
     if (!builder) {
-      builder = CharacterUI.mount($("builder"), { initial: (profile && profile.avatar_options) || Sprite.randomOptions() });
+      builder = MonkeyUI.mount($("builder"), { initial: profile && Monkey.isMonkey(profile.avatar_options) ? profile.avatar_options : Monkey.randomOptions() });
     }
     if (profile) { $("pName").value = profile.name; $("charIntro").textContent = "Change your look or name. Your group sees the update right away."; }
     show("character");
@@ -132,12 +140,12 @@
     var name = $("pName").value.trim();
     if (!name) { msg("charMsg", "Tell us your name first.", "err"); $("pName").focus(); return; }
     msg("charMsg", "Saving…");
-    var row = { user_id: uid, name: name, avatar_data_url: builder.getDataURL(1), avatar_options: builder.getOptions() };
+    var row = { user_id: uid, name: name, avatar_data_url: await builder.getDataURL(96), avatar_options: builder.getOptions() };
     var r = await sb.from("profiles").upsert(row).select().single();
     if (r.error) { fail("charMsg", r.error); return; }
     var isNew = !profile;
     profile = r.data;
-    Analytics.track(isNew ? "character_created" : "character_edited", { hair: row.avatar_options.hair, top: row.avatar_options.top, glasses: !!row.avatar_options.glasses });
+    Analytics.track(isNew ? "character_created" : "character_edited", { hair: row.avatar_options.hair, fur: row.avatar_options.fur, outfit: row.avatar_options.outfit });
     // Keep my player rows in sync so the leaderboard shows the new look.
     await sb.from("players").update({ name: name, avatar_data_url: row.avatar_data_url, avatar_options: row.avatar_options }).eq("user_id", uid);
     if (me) { me.name = name; me.avatar_data_url = row.avatar_data_url; me.avatar_options = row.avatar_options; }
@@ -228,13 +236,13 @@
   function goalSummary(list) { return list.map(function (g) { return g.text; }).join(" · "); }
   function updateGoalPreview() {
     var list = selectedGoals();
+    drawPiece($("piecePreview"), profile.avatar_options, profile.avatar_data_url, 1, list.map(function (g) { return g.type; }));
     $("goalPreview").textContent = list.length ? "Your locked goals: " + goalSummary(list) + ", for 90 days." : "Pick at least one goal.";
     $("lockBtn").disabled = !list.length;
   }
   function openIntake() {
     $("intakeChallenge").textContent = challenge.name + " (starts " + challenge.starts_on + ")";
     $("pieceName").textContent = profile.name;
-    drawPiece($("piecePreview"), profile.avatar_options, profile.avatar_data_url, 1);
     buildGoalCards();
     updateGoalPreview();
     show("intake");
@@ -342,7 +350,7 @@
     renderSettings();
     $("playChallenge").textContent = challenge.name.toUpperCase();
     $("playMeta").textContent = challenge.starts_on + " → " + s.endsOn + " · invite code " + challenge.invite_code + " · " + players.length + " player" + (players.length === 1 ? "" : "s");
-    drawPiece($("mePiece"), me.avatar_options, me.avatar_data_url, s.stage);
+    drawPiece($("mePiece"), me.avatar_options, me.avatar_data_url, s.stage, goalTypesOf(me));
     $("meName").textContent = me.name.toUpperCase();
     $("meStage").textContent = "STAGE " + s.stage + " · " + s.stageName;
     $("meStage").className = "stage s" + s.stage;
@@ -399,14 +407,14 @@
     rows.sort(function (a, b) { return GameRules.compare(a.s, b.s); });
     $("standings").innerHTML = rows.map(function (r, i) {
       var week = r.s.goals.map(function (g) { return g.thisWeekCount + "/" + g.perWeek; }).join(" · ");
-      return '<tr class="' + (r.p.id === me.id ? "me" : "") + '"><td class="n">' + (i + 1) + '</td><td class="pc"><canvas class="piece row" data-row="' + i + '" width="15" height="24"></canvas></td>' +
+      return '<tr class="' + (r.p.id === me.id ? "me" : "") + '"><td class="n">' + (i + 1) + '</td><td class="pc"><canvas class="piece row" data-row="' + i + '"></canvas></td>' +
         "<td><strong>" + esc(r.p.name) + "</strong> " + stageHTML(r.s) +
         '<br><span class="muted" style="font-size:13px">' + esc(r.s.goals.map(function (g) { return GameRules.goalShort({ type: g.type, per_week: g.perWeek }); }).join(" + ") || r.p.goal_text) + " · wk " + week + " · streak " + r.s.streak + (r.p.tracking === "whoop" ? " · Whoop" : "") + "</span>" +
         '<div class="lp sm"><div class="lp-bar"><div class="lp-fill ' + lpClass(r.s.lp) + '" style="width:' + (r.s.lp / GameRules.RULES.lpMax * 100) + '%"></div></div></div></td>' +
         '<td class="n">' + r.s.lp + "<br><span style=\"color:var(--muted)\">LP</span></td></tr>";
     }).join("");
     $("standings").querySelectorAll("canvas[data-row]").forEach(function (c) {
-      var r = rows[+c.dataset.row]; drawPiece(c, r.p.avatar_options, r.p.avatar_data_url, r.s.stage);
+      var r = rows[+c.dataset.row]; drawPiece(c, r.p.avatar_options, r.p.avatar_data_url, r.s.stage, goalTypesOf(r.p));
     });
 
     // Banner when a check-in just hit the week or evolved us.
