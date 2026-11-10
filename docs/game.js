@@ -132,7 +132,15 @@
     if (!builder) {
       builder = MonkeyUI.mount($("builder"), { initial: profile && Monkey.isMonkey(profile.avatar_options) ? profile.avatar_options : Monkey.randomOptions() });
     }
-    if (profile) { $("pName").value = profile.name; $("charIntro").textContent = "Change your look or name. Your group sees the update right away."; }
+    var editing = !!profile;
+    if (editing) {
+      $("pName").value = profile.name;
+      if (Monkey.isMonkey(profile.avatar_options)) builder.setOptions(profile.avatar_options);   // start from the saved look, not a stale draft
+      $("charIntro").textContent = "Change your look or name. Every group you are in sees the update right away.";
+    }
+    $("charStep").hidden = editing;                       // the step counter only makes sense during onboarding
+    $("charTitle").textContent = editing ? "EDIT YOUR CHARACTER" : "BUILD YOUR CHARACTER";
+    $("charBack").hidden = !(me || myPlayers.length);     // nothing to go back to before the first group
     show("character");
     $("pName").focus();
   }
@@ -516,6 +524,9 @@
   $("nextBtn").addEventListener("click", saveCharacter);
   $("pName").addEventListener("keydown", function (e) { if (e.key === "Enter") saveCharacter(); });
   $("homeEdit").addEventListener("click", function (e) { e.preventDefault(); openCharacter(null); });
+  // From the play screen: edit, then saveCharacter() refreshes and returns to play on its own.
+  $("meEdit").addEventListener("click", function (e) { e.preventDefault(); openCharacter(null); });
+  $("charBackLink").addEventListener("click", function (e) { e.preventDefault(); afterCharacter = null; if (me) show("play"); else if (myPlayers.length) enterGroup(myPlayers[0]); else openHome(); });
   $("editCharBtn").addEventListener("click", function () { openCharacter(openIntake); });
   $("createBtn").addEventListener("click", create);
   $("joinBtn").addEventListener("click", join);

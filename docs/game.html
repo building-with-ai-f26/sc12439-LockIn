@@ -161,8 +161,9 @@
 
   <!-- ONBOARDING STEP 1: build your character -->
   <section data-view="character" hidden>
-    <div class="step pixel">STEP 1 OF 4 · <span>CHARACTER</span></div>
-    <h1>BUILD YOUR CHARACTER</h1>
+    <div class="step pixel" id="charStep">STEP 1 OF 4 · <span>CHARACTER</span></div>
+    <p class="pixel" style="font-size:9px" id="charBack" hidden><a href="#" id="charBackLink">◀ BACK TO MY GAME</a></p>
+    <h1 id="charTitle">BUILD YOUR CHARACTER</h1>
     <p class="muted" id="charIntro">Everyone starts as a ROOKIE. Choose your hair and colours; the body is the same for all. Three hit weeks in a row evolves you into a CONTENDER, seven into a LEGEND.</p>
     <div class="panel">
       <label class="f" style="max-width:360px"><span class="pixel">YOUR NAME</span><input type="text" id="pName" maxlength="16" placeholder="Sam"></label>
@@ -259,6 +260,7 @@
                 <div class="lp-bar"><div class="lp-fill" id="meLPFill"></div></div>
               </div>
               <div class="muted" style="font-size:13px" id="evolveMsg"></div>
+              <p class="pixel" style="font-size:8px;margin:10px 0 0"><a href="#" id="meEdit">EDIT CHARACTER</a></p>
             </div>
           </div>
           <div class="stats">
