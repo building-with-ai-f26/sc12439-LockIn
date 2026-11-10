@@ -1,6 +1,6 @@
 # Monkey art: what the game expects in `docs/images/monkeys/`
 
-Everyone in Lock-In Party is a monkey with three evolution stages: **Orangupe** (stage 1, nerdy starter), **Primacho** (stage 2, fitness), **Mega-Simian** (stage 3, mystic). One neutral body per stage. Players customise hair style, fur colour, hair colour and outfit colour. Goal badges sit under the monkey, one per locked goal.
+Everyone in Lock-In Party is a monkey with three evolution stages: **Rookie** (stage 1, nerdy starter), **Contender** (stage 2, fitness), **Legend** (stage 3, mystic). One neutral body per stage. Players customise hair style, fur colour, hair colour and outfit colour. Goal badges sit under the monkey, one per locked goal.
 
 The art is generated (Flora or similar) and dropped in as PNGs. `docs/monkey.js` recolours fur, hair and outfit at draw time by hunting for three **reference hues**, so every generated file must use exactly these colours:
 

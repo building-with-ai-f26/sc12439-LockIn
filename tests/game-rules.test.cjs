@@ -25,9 +25,9 @@ test("weekIndexFor counts 7-day weeks from the start date", () => {
 });
 
 test("stage names and evolution thresholds", () => {
-  assert.equal(G.stageName(1), "ORANGUPE");
-  assert.equal(G.stageName(2), "PRIMACHO");
-  assert.equal(G.stageName(3), "MEGA-SIMIAN");
+  assert.equal(G.stageName(1), "ROOKIE");
+  assert.equal(G.stageName(2), "CONTENDER");
+  assert.equal(G.stageName(3), "LEGEND");
   assert.equal(G.nextEvolveAt(1), 3);
   assert.equal(G.nextEvolveAt(2), 7);
   assert.equal(G.nextEvolveAt(3), null);
@@ -77,7 +77,7 @@ test("three hit weeks in a row evolve to stage 2", () => {
   assert.equal(two.streak, 2);
   const three = G.summarize({ startsOn: START, perWeek: 1, today: startOfWeek(3), workouts: hitWeeks(0, 1, 2) });
   assert.equal(three.stage, 2);
-  assert.equal(three.stageName, "PRIMACHO");
+  assert.equal(three.stageName, "CONTENDER");
   assert.equal(three.lp, 80);
   assert.equal(three.nextEvolveAt, 7);
   assert.deepEqual(three.weeks[2].events, ["hit", "evolve"]);
@@ -94,7 +94,7 @@ test("breaking a streak devolves one stage and costs 15 LP", () => {
 test("seven in a row reaches the final stage and LP caps at 100", () => {
   const s = G.summarize({ startsOn: START, perWeek: 1, today: startOfWeek(7), workouts: hitWeeks(0, 1, 2, 3, 4, 5, 6) });
   assert.equal(s.stage, 3);
-  assert.equal(s.stageName, "MEGA-SIMIAN");
+  assert.equal(s.stageName, "LEGEND");
   assert.equal(s.lp, 100);
   assert.equal(s.nextEvolveAt, null);
   assert.deepEqual(s.weeks[6].events, ["hit", "evolve"]);

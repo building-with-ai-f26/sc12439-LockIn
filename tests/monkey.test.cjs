@@ -55,7 +55,7 @@ test("options, paths and names", () => {
   assert.equal(M.imagePath(9, "nope"), "images/monkeys/s3-spiky.png");
   assert.equal(M.badgePath("reading"), "images/monkeys/badge-book.png");
   assert.equal(M.badgePath("fitness"), "images/monkeys/badge-dumbbell.png");
-  assert.deepEqual(M.STAGES, ["ORANGUPE", "PRIMACHO", "MEGA-SIMIAN"]);
+  assert.deepEqual(M.STAGES, ["ROOKIE", "CONTENDER", "LEGEND"]);
   const r = M.randomOptions();
   assert.ok(M.HAIRS.some((h) => h.id === r.hair) && M.FUR_COLORS.includes(r.fur));
 });

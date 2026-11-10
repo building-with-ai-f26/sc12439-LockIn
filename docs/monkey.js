@@ -21,7 +21,7 @@
   "use strict";
 
   var BASE = "images/monkeys/";
-  var STAGES = ["ORANGUPE", "PRIMACHO", "MEGA-SIMIAN"];
+  var STAGES = ["ROOKIE", "CONTENDER", "LEGEND"];
   var HAIRS = [
     { id: "spiky", label: "SPIKY" },
     { id: "shaggy", label: "SHAGGY" },
