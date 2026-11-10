@@ -51,7 +51,7 @@ test("each reference part maps independently; unrelated hues are untouched", () 
 test("options, paths and names", () => {
   assert.equal(M.isMonkey(M.defaultOptions()), true);
   assert.equal(M.isMonkey({ hair: "pompadour" }), false);
-  assert.equal(M.imagePath(2, "braids"), "images/monkeys/s2-braids.png");
+  assert.equal(M.imagePath(2, "shaggy"), "images/monkeys/s2-shaggy.png");
   assert.equal(M.imagePath(9, "nope"), "images/monkeys/s3-spiky.png");
   assert.equal(M.badgePath("reading"), "images/monkeys/badge-book.png");
   assert.equal(M.badgePath("fitness"), "images/monkeys/badge-dumbbell.png");

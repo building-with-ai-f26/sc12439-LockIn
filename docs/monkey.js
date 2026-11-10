@@ -24,7 +24,7 @@
   var STAGES = ["ORANGUPE", "PRIMACHO", "MEGA-SIMIAN"];
   var HAIRS = [
     { id: "spiky", label: "SPIKY" },
-    { id: "braids", label: "BRAIDED BUN" },
+    { id: "shaggy", label: "SHAGGY" },
     { id: "curly", label: "CURLY" }
   ];
   // The hues the generated images must use. recolor() hunts for these.

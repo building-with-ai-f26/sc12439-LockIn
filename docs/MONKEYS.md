@@ -18,9 +18,9 @@ Keep every other colour (outlines, glasses, props) dark or grey. Anything colour
 Nine monkeys, 512×512 PNG, transparent background, full body standing, facing front, feet at the bottom, centred, about 80% of the height:
 
 ```
-s1-spiky.png  s1-braids.png  s1-curly.png
-s2-spiky.png  s2-braids.png  s2-curly.png
-s3-spiky.png  s3-braids.png  s3-curly.png
+s1-spiky.png  s1-shaggy.png  s1-curly.png
+s2-spiky.png  s2-shaggy.png  s2-curly.png
+s3-spiky.png  s3-shaggy.png  s3-curly.png
 ```
 
 Four badges, 128×128 PNG, transparent background:
@@ -42,14 +42,16 @@ Clothing exactly #3B82F6 (blue). Face, ears, hands and feet pale cream
 Stage 1: slim, young, nerdy posture, round glasses, t-shirt and shorts.
 Stage 2: muscular, athletic stance, tank top and shorts, headband.
 Stage 3: calm, eyes closed, long robe, standing on a small rock.
-Hair: [spiky short hair | braided bun | short curly hair].
+Hair: [spiky short hair | shaggy medium hair | short curly hair].
 ```
 
 Badges: `Single pixel-art icon, 16-bit style, flat colours, crisp outline, transparent background, centered in a 128x128 square, no text: [open book | dumbbell | pair of footprints | cocktail glass with a red slash].`
 
-## Until the real files land
+## How the files were made (2026-11-09)
 
-The current files are placeholder crops from the reference chart (opaque jungle background, no reference hues), so recolouring does little. Swap them for the generated files and nothing else needs to change. If a file is missing the game draws a grey block with a question mark instead of breaking.
+Flora generated one white-background contact sheet (3×3 monkeys, hair columns spiky / shaggy / curly, plus the four grey badges) from the prompt above. `scripts/monkey-prep.py --sheet <sheet>.png docs/images/monkeys/` slices it, keys out the background (white, or a drawn checkerboard, or real transparency), drops watermark specks, snaps every pixel to the exact reference palette (two tones per part plus a `#1A1A1A` outline), redraws a uniform outline and refits each monkey to 80% of a 512 square with its feet near the bottom. Badges are resized to 128 with their own colours kept. The same script also handles single 1024px Flora exports.
+
+Known quirks of this generation: stage 3 shaggy and curly have no robe (bare chest), and only stage 3 spiky stands on the rock. Regenerate and rerun the script if that bothers you; the game code does not care. If a file is missing the game draws a grey block with a question mark instead of breaking.
 
 ## Checking a generated file
 
