@@ -13,7 +13,7 @@
 1. **Build your character.** Everyone shares the same body per stage. Choose a hair style and your body, hair and outfit colours. Stage 1 is a Rookie; it evolves into a Contender and then a Legend.
 2. **Create or join a group** with an invite code or link.
 3. **Lock in your goals** for 90 days: workouts per week, 10,000-step days, reading days, dry days, in any combination, each with its own weekly target. They cannot be changed afterwards.
-4. **Choose how you track.** Connect a Whoop and the nightly sync logs workouts of 30+ minutes (walks excluded) for you; Apple Health is coming later; or tap it in by hand. Steps, reading and dry days are always tapped in, once per day.
+4. **Choose how you track.** Connect a Whoop and the nightly sync logs workouts of 30+ minutes (walks excluded) and 10,000-step days for you; Apple Health is coming later; or tap it in by hand. Steps, reading and dry days are always tapped in, once per day.
 5. **Keep your LP up.** Everyone starts at 50 Lock-in Power. Hit every goal in a week, +10. Miss any, −15. Three hit weeks in a row evolves you to Contender, seven to Legend. Break the streak or hit 0 LP and you devolve.
 6. **Highest LP on day 90 wins.** The leaderboard shows everyone's stage, LP and streak.
 7. **Several groups, one character.** Switch between your groups from the play screen or start another. Whoever created a group can rename it, move the start date before day one, remove a member or delete it.

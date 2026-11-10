@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /*
   whoop-sync.mjs — nightly job: pull each connected person's Whoop workouts
-  for the last few days and log any new ones as check-ins on their workouts goal.
+  and daily step counts for the last few days and log any new ones as
+  check-ins: workouts of 30+ minutes on the workouts goal, days at or above
+  the step target on the steps goal.
 
   Run by .github/workflows/whoop-sync.yml at 11:59 PM Eastern. Run locally:
     node scripts/whoop-sync.mjs --force        (skips the 11 PM guard)
@@ -60,21 +62,24 @@ async function refreshTokens(conn) {
   return { access_token: j.access_token, refresh_token: j.refresh_token || conn.refresh_token, expires_at: new Date(Date.now() + (j.expires_in || 3600) * 1000).toISOString() };
 }
 
-async function fetchWorkouts(accessToken, window) {
+// Whoop collections (workouts, cycles) page the same way.
+async function fetchAll(url, what, accessToken, window) {
   const records = [];
   let nextToken = null;
   for (let page = 0; page < 20; page++) {
     const q = new URLSearchParams({ start: window.start, end: window.end, limit: String(W.WHOOP.pageSize) });
     if (nextToken) q.set("nextToken", nextToken);
-    const r = await fetch(W.WHOOP.workoutsUrl + "?" + q, { headers: { Authorization: "Bearer " + accessToken } });
+    const r = await fetch(url + "?" + q, { headers: { Authorization: "Bearer " + accessToken } });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error("Whoop workouts failed (" + r.status + "): " + JSON.stringify(j));
+    if (!r.ok) { const e = new Error("Whoop " + what + " failed (" + r.status + "): " + JSON.stringify(j)); e.status = r.status; throw e; }
     records.push(...(j.records || []));
     nextToken = j.next_token;
     if (!nextToken) break;
   }
   return records;
 }
+const fetchWorkouts = (token, window) => fetchAll(W.WHOOP.workoutsUrl, "workouts", token, window);
+const fetchCycles = (token, window) => fetchAll(W.WHOOP.cyclesUrl, "cycles", token, window);
 
 // ---------- main ----------
 const connections = await db("whoop_connections?select=*");
@@ -99,16 +104,30 @@ for (const conn of connections) {
       continue;
     }
 
-    // Whoop only knows about workouts, so rows land on each player's fitness goal.
-    const fitnessGoals = await db("goals?select=id,player_id&type=eq.fitness&player_id=in.(" + playerIds.join(",") + ")");
-    if (!fitnessGoals.length) {
-      console.log(tag + " has no workouts goal in a running challenge; skipped");
+    // Workouts land on each player's workouts goal, step days on their steps goal.
+    const goals = await db("goals?select=id,player_id,type,settings&type=in.(fitness,steps)&player_id=in.(" + playerIds.join(",") + ")");
+    const fitnessGoals = goals.filter((g) => g.type === "fitness");
+    const stepGoals = goals.filter((g) => g.type === "steps");
+    if (!fitnessGoals.length && !stepGoals.length) {
+      console.log(tag + " has no workouts or steps goal in a running challenge; skipped");
       await db("whoop_connections?user_id=eq." + conn.user_id, { method: "PATCH", body: { last_synced_at: now.toISOString(), last_error: null }, prefer: "return=minimal" });
       continue;
     }
 
-    const records = await fetchWorkouts(fresh.access_token, window);
+    const records = fitnessGoals.length ? await fetchWorkouts(fresh.access_token, window) : [];
     const candidates = W.toCheckinRows(records, fitnessGoals, { minMinutes: MIN_MINUTES, excludeSports: EXCLUDE });
+    // Steps need the read:cycles scope. A connection made before we asked for it
+    // gets 401/403 here; keep its workouts flowing and say what to do.
+    let cycles = [], stepNote = "";
+    if (stepGoals.length) {
+      try {
+        cycles = await fetchCycles(fresh.access_token, window);
+        candidates.push(...W.toStepRows(cycles, stepGoals));
+      } catch (err) {
+        if (err.status === 401 || err.status === 403) stepNote = "steps skipped: reconnect Whoop to grant read:cycles";
+        else throw err;
+      }
+    }
     // Skip anything already logged. (The unique index on (player_id, external_id) is
     // partial, which PostgREST's on_conflict cannot target, so we filter here; the
     // index still guards against a race.)
@@ -119,9 +138,10 @@ for (const conn of connections) {
     const rows = candidates.filter((r) => !seen.has(r.player_id + "|" + r.external_id));
     let inserted = [];
     if (rows.length) inserted = await db("checkins", { method: "POST", body: rows, prefer: "return=representation" });
-    console.log(tag + " " + records.length + " Whoop workout(s) in window, " + candidates.length + " eligible, " + inserted.length + " new");
+    const stepHits = candidates.filter((r) => String(r.external_id).startsWith("cycle:")).length;
+    console.log(tag + " " + records.length + " Whoop workout(s) and " + cycles.length + " day(s) in window, " + (candidates.length - stepHits) + " workout(s) + " + stepHits + " step day(s) eligible, " + inserted.length + " new" + (stepNote ? " · " + stepNote : ""));
     inserted.forEach((r) => console.log("   + " + r.happened_at + "  " + r.note));
-    await db("whoop_connections?user_id=eq." + conn.user_id, { method: "PATCH", body: { last_synced_at: now.toISOString(), last_error: null }, prefer: "return=minimal" });
+    await db("whoop_connections?user_id=eq." + conn.user_id, { method: "PATCH", body: { last_synced_at: now.toISOString(), last_error: stepNote || null }, prefer: "return=minimal" });
   } catch (err) {
     failures++;
     console.error(tag + " FAILED: " + err.message);

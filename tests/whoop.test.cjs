@@ -48,6 +48,28 @@ test("note humanises the sport and copes with no score yet", () => {
   assert.equal(W.humanSport(undefined), "Workout");
 });
 
+const cyc = (over) => Object.assign({ id: 93845, start: "2026-11-09T11:30:00.000Z", end: "2026-11-10T11:00:00.000Z", timezone_offset: "-05:00", score_state: "SCORED", step_count: 12345 }, over);
+const S1 = { id: "s1", player_id: "p1", settings: { steps: 10000 } }, S2 = { id: "s2", player_id: "p2", settings: {} };
+test("a cycle at or above the step target becomes one check-in per steps goal, dated to the local wake-up day", () => {
+  const rows = W.toStepRows([cyc()], [S1, S2]);
+  assert.equal(rows.length, 2);
+  assert.deepEqual(rows[0], { player_id: "p1", goal_id: "s1", happened_at: "2026-11-09T12:00:00-05:00", source: "whoop", external_id: "cycle:93845", note: "12,345 steps" });
+  assert.equal(rows[1].goal_id, "s2");   // no settings → default 10,000 target
+  assert.equal(W.toStepRows([cyc()], []).length, 0);
+});
+test("step days below the target, or with no count, are dropped; the target is per goal", () => {
+  assert.equal(W.toStepRows([cyc({ step_count: 9999 })], [S1]).length, 0);
+  assert.equal(W.toStepRows([cyc({ step_count: null })], [S1]).length, 0);
+  assert.equal(W.toStepRows([cyc({ step_count: 6000 })], [{ id: "s3", player_id: "p3", settings: { steps: 5000 } }]).length, 1);
+  assert.equal(W.toStepRows([cyc({ step_count: 10000 })], [S1]).length, 1);   // exactly on target counts
+  assert.equal(W.toStepRows([cyc({ end: null, step_count: 10400 })], [S1]).length, 1);   // today's cycle, already over
+});
+test("the wake-up day follows the cycle's timezone, not UTC", () => {
+  assert.equal(W.cycleLocalDay(cyc({ start: "2026-11-10T03:30:00.000Z", timezone_offset: "-05:00" })).day, "2026-11-09");   // 10:30 PM in New York
+  assert.equal(W.cycleLocalDay(cyc({ start: "2026-11-09T20:00:00.000Z", timezone_offset: "+05:30" })).day, "2026-11-10");
+  assert.equal(W.cycleLocalDay(cyc({ timezone_offset: undefined })).day, "2026-11-09");   // missing offset → UTC
+});
+
 test("only players in a running challenge receive rows", () => {
   const now = "2026-11-10T04:59:00Z";
   const players = [
@@ -70,7 +92,7 @@ test("auth URL carries the required Whoop parameters", () => {
   assert.equal(u.origin + u.pathname, "https://api.prod.whoop.com/oauth/oauth2/auth");
   assert.equal(u.searchParams.get("response_type"), "code");
   assert.equal(u.searchParams.get("client_id"), "abc");
-  assert.equal(u.searchParams.get("scope"), "offline read:workout read:profile");
+  assert.equal(u.searchParams.get("scope"), "offline read:workout read:cycles read:profile");
   assert.equal(u.searchParams.get("state"), "12345678");
 });
 

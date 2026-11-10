@@ -10,12 +10,13 @@ const WHOOP = {
   authUrl: BASE + "/oauth/oauth2/auth",
   tokenUrl: BASE + "/oauth/oauth2/token",
   workoutsUrl: BASE + "/developer/v2/activity/workout",
+  cyclesUrl: BASE + "/developer/v2/cycle",          // daily cycles carry step_count (needs read:cycles)
   profileUrl: BASE + "/developer/v2/user/profile/basic",
-  scopes: ["offline", "read:workout", "read:profile"],
+  scopes: ["offline", "read:workout", "read:cycles", "read:profile"],
   pageSize: 25
 };
 
-const DEFAULTS = { minMinutes: 30, excludeSports: ["walking"], windowDays: 3, challengeDays: 90 };
+const DEFAULTS = { minMinutes: 30, excludeSports: ["walking"], windowDays: 3, challengeDays: 90, stepsTarget: 10000 };
 
 // True when `date` falls in the 11 PM hour in New York, EST or EDT.
 // The GitHub cron fires at both 03:59 and 04:59 UTC; whichever is 23:59 local wins.
@@ -77,6 +78,41 @@ function toCheckinRows(records, fitnessGoals, opts) {
   return rows;
 }
 
+/*
+  Steps. A Whoop cycle runs from wake-up to wake-up and carries step_count
+  (null when Whoop has none; the current cycle shows steps so far). A cycle
+  that reaches a player's target becomes one check-in on their steps goal,
+  dated to the local calendar day the cycle started on, at noon in that
+  timezone so every browser files it under the same day. The current cycle
+  may be logged early once it crosses the target; counts only grow.
+*/
+function cycleLocalDay(cycle) {
+  const off = /^[+-]\d\d:\d\d$/.test(cycle.timezone_offset || "") ? cycle.timezone_offset : "+00:00";
+  const mins = (off[0] === "-" ? -1 : 1) * (parseInt(off.slice(1, 3), 10) * 60 + parseInt(off.slice(4, 6), 10));
+  const local = new Date(new Date(cycle.start).getTime() + mins * 60000);
+  return { day: local.toISOString().slice(0, 10), offset: off };
+}
+function stepsTargetOf(goal) {
+  const n = goal && goal.settings && Number(goal.settings.steps);
+  return n > 0 ? n : DEFAULTS.stepsTarget;
+}
+// toStepRows(cycles, stepGoals) — stepGoals: [{ id, player_id, settings }], the steps goal of each active player.
+function toStepRows(cycles, stepGoals) {
+  const rows = [];
+  (cycles || []).forEach((c) => {
+    if (!c || c.id == null || !c.start || typeof c.step_count !== "number") return;
+    const when = cycleLocalDay(c);
+    (stepGoals || []).forEach((g) => {
+      if (c.step_count < stepsTargetOf(g)) return;
+      rows.push({
+        player_id: g.player_id, goal_id: g.id, happened_at: when.day + "T12:00:00" + when.offset, source: "whoop",
+        external_id: "cycle:" + c.id, note: c.step_count.toLocaleString("en-US") + " steps"
+      });
+    });
+  });
+  return rows;
+}
+
 // Only players whose challenge is running (or ended within the sync window) should receive rows.
 function activePlayerIds(players, now, opts) {
   const days = (opts && opts.challengeDays) || DEFAULTS.challengeDays;
@@ -131,5 +167,5 @@ function parseDotenv(text) {
 module.exports = {
   WHOOP, DEFAULTS,
   isElevenPmEastern, syncWindow, durationMinutes, humanSport, noteFor,
-  toCheckinRows, activePlayerIds, tokenExpired, authUrl, parseCallback, parseDotenv, parseSportList, isExcludedSport
+  toCheckinRows, toStepRows, cycleLocalDay, stepsTargetOf, activePlayerIds, tokenExpired, authUrl, parseCallback, parseDotenv, parseSportList, isExcludedSport
 };

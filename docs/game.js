@@ -287,7 +287,7 @@
   // ---------- step 4: tracking ----------
   function whoopAuthUrl() {
     var state = Math.random().toString(36).slice(2, 10).padEnd(8, "0");   // Whoop wants exactly 8 chars
-    var q = new URLSearchParams({ response_type: "code", client_id: whoopCfg.clientId, redirect_uri: whoopCfg.redirectUri, scope: "offline read:workout read:profile", state: state });
+    var q = new URLSearchParams({ response_type: "code", client_id: whoopCfg.clientId, redirect_uri: whoopCfg.redirectUri, scope: "offline read:workout read:cycles read:profile", state: state });
     return "https://api.prod.whoop.com/oauth/oauth2/auth?" + q;
   }
   function openTracking(then) {

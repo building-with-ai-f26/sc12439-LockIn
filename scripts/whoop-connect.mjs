@@ -102,7 +102,7 @@ try {
     method: "POST", prefer: "return=minimal,resolution=merge-duplicates",
     body: { user_id: who.user_id, whoop_user_id: whoopUserId, access_token: tok.access_token, refresh_token: tok.refresh_token, expires_at: new Date(Date.now() + (tok.expires_in || 3600) * 1000).toISOString(), last_error: null }
   });
-  console.log("Connected " + who.name + ". Workouts of " + (process.env.WHOOP_MIN_MINUTES || W.DEFAULTS.minMinutes) + "+ minutes (except " + (process.env.WHOOP_EXCLUDE_SPORTS || W.DEFAULTS.excludeSports.join(", ")) + ") will be logged nightly at 11:59 PM Eastern.");
+  console.log("Connected " + who.name + ". Workouts of " + (process.env.WHOOP_MIN_MINUTES || W.DEFAULTS.minMinutes) + "+ minutes (except " + (process.env.WHOOP_EXCLUDE_SPORTS || W.DEFAULTS.excludeSports.join(", ")) + ") and days at the step target will be logged nightly at 11:59 PM Eastern.");
   console.log("Try it now:  node scripts/whoop-sync.mjs --force");
 } finally {
   rl.close();

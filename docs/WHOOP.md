@@ -1,4 +1,4 @@
-# Whoop sync: workouts logged for you at 11:59 PM Eastern
+# Whoop sync: workouts and step days logged for you at 11:59 PM Eastern
 
 Every night a GitHub Action pulls each connected person's Whoop workouts from the last 3 days and logs any new one of 30+ minutes, walking excluded, into the game as check-ins on that person's workouts goal, with `source = 'whoop'`. The game rules are unchanged: a Whoop row counts exactly like a tapped "I worked out today". Whoop only knows about workouts, so step, reading and dry-day goals are still tapped in by hand, and a player without a workouts goal is skipped.
 
@@ -6,7 +6,7 @@ Every night a GitHub Action pulls each connected person's Whoop workouts from th
 
 1. **Database.** Supabase → SQL Editor → paste `supabase/003-whoop.sql` → Run (and `004-goals.sql` if you have not yet).
 2. **Whoop app.** Sign in at https://developer.whoop.com with your Whoop account → Create app.
-   - Name: Lock-In Party. Scopes: `offline`, `read:workout`, `read:profile`.
+   - Name: Lock-In Party. Scopes: `offline`, `read:workout`, `read:cycles`, `read:profile`. (`read:cycles` was added on 10 Nov 2026 for step counts; anyone connected before then must connect again.)
    - Redirect URL: `https://building-with-ai-f26.github.io/sc12439-LockIn/whoop-callback.html`
    - Copy the Client ID and Client Secret.
    - Development apps can connect up to 10 Whoop members. Plenty for a friend group.
