@@ -214,6 +214,20 @@ def sheet(src, outdir):
                 if merged: break
         return blobs
     blobs = merge(blobs)
+    # Grow each box over any coloured pixels touching its edges, so dull hair
+    # just under the colour threshold is not cut off (the watermark is grey, so it never pulls a box).
+    def coloured(x, y): q = px[x, y]; return chroma_of(q) > 0.1 and lum_of(q) < 0.9
+    def grow(b):
+        x0, y0, x1, y1 = b
+        for _ in range(120):
+            changed = False
+            if y0 > 0 and any(coloured(x, y0 - 1) for x in range(x0, x1)): y0 -= 1; changed = True
+            if y1 < H and any(coloured(x, y1) for x in range(x0, x1)): y1 += 1; changed = True
+            if x0 > 0 and any(coloured(x0 - 1, y) for y in range(y0, y1)): x0 -= 1; changed = True
+            if x1 < W and any(coloured(x1, y) for y in range(y0, y1)): x1 += 1; changed = True
+            if not changed: break
+        return (x0, y0, x1, y1)
+    blobs = [grow(b) for b in blobs]
     blobs.sort(key=lambda b: (b[1] + b[3]) / 2)
     rows = []
     for b in blobs:

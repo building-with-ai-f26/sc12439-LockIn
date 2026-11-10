@@ -51,7 +51,7 @@ Badges: `Single pixel-art icon, 16-bit style, flat colours, crisp outline, trans
 
 Flora generated one white-background contact sheet (3×3 monkeys, hair columns spiky / shaggy / curly, plus the four grey badges) from the prompt above. `scripts/monkey-prep.py --sheet <sheet>.png docs/images/monkeys/` slices it, keys out the background (white, or a drawn checkerboard, or real transparency), drops watermark specks, snaps every pixel to the exact reference palette (two tones per part plus a `#1A1A1A` outline), redraws a uniform outline and refits each monkey to 80% of a 512 square with its feet near the bottom. Badges are resized to 128 with their own colours kept. The same script also handles single 1024px Flora exports.
 
-Known quirks of this generation: stage 3 shaggy and curly have no robe (bare chest), and only stage 3 spiky stands on the rock. Regenerate and rerun the script if that bothers you; the game code does not care. If a file is missing the game draws a grey block with a question mark instead of breaking.
+The stage 3 row comes from a second sheet ("Male Monkeys Project 1", regenerated so every stage 3 character wears the robe); stages 1 and 2 and the badges come from the first sheet. Only stage 3 spiky stands on the rock. If a file is missing the game draws a grey block with a question mark instead of breaking.
 
 ## Checking a generated file
 
