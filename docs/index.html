@@ -69,7 +69,7 @@
 <div class="wrap">
 
   <header>
-    <div class="pixel" style="font-size:10px;color:var(--muted);margin-bottom:12px;">PRODUCT PAGE · PRD v1</div>
+    <div class="pixel" style="font-size:10px;color:var(--muted);margin-bottom:12px;">PRODUCT PAGE · PRD v3</div>
     <h1>LOCK-IN PARTY</h1>
     <p class="tag">An 8-bit party game where friends lock in 90-day goals (workouts, 10,000 steps, reading, no drinking), check in every day, and evolve their characters by keeping their streaks and Lock-in Power alive.</p>
     <div class="chips">
@@ -150,6 +150,13 @@
     <p class="todo">TODO: add a screenshot of a real challenge once the group has a week of check-ins.</p>
   </div>
 
+  <h2>▶ SHIP (BUILD 3): HOSTING, DATABASE, SECURITY</h2>
+  <div class="panel">
+    <p><strong>Hosting.</strong> GitHub Pages serves <code>docs/</code> straight from <code>main</code>: no build, no server, a push is a deploy and <code>git revert</code> is a rollback. The nightly Whoop sync is a GitHub Actions cron with the secrets in repo settings. Beginner lane.</p>
+    <p><strong>Database.</strong> One Supabase Postgres project on the free tier. Every phone signs in anonymously and talks to the database from the browser with the public anon key. Row Level Security is on for every table: you can read your group's board, write only your own check-ins and goals, and only a group's creator can rename, re-date or delete it. Whoop tokens sit in a table with no browser policies at all. Schema changes are numbered migrations in <code>supabase/</code>, pasted into the SQL editor by me. Manual JSON backup before each one.</p>
+    <p><strong>Security.</strong> Audited on 23 Nov against the live site: a second anonymous account tried ten writes against my rows and every one was refused; the public key alone cannot read, insert or delete anything; no secret appears in the repo, its history or the published files. One finding: any signed-in account can list every group's invite code, because v1 lets everyone read every table. Fix written as migration 006 (reads scoped to your own groups, joining through a lookup function); it ships with the join-screen change in Build 4. PostHog stays on; session replay stays off on purpose because the board shows friends' drinking and workout habits. Full write-up in <a href="https://github.com/building-with-ai-f26/sc12439-LockIn/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+  </div>
+
   <h2>▶ PROTOTYPE</h2>
   <div class="panel">
     <p><strong>8-Bit Me.</strong> Upload a photo and it becomes your game piece for the board: a pixel-art character snapped to a retro palette. Runs entirely in the browser, nothing is uploaded.</p>
@@ -217,6 +224,36 @@
       </td></tr>
       <tr><td>Costs</td><td>$0 of new spend. Supabase free tier, GitHub Pages and Actions on a public repo, PostHog free tier, and a Whoop developer app, which is free with the Whoop membership I already pay for. Coding agent on an existing plan.</td></tr>
       <tr><td>Hours</td><td>About 5 hours across two sittings on November 9, going by commit timestamps: the game loop and character builder overnight, then the Pokémon redesign, Whoop and PostHog the next morning.</td></tr>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="pixel" style="font-size:10px;color:var(--muted);margin-bottom:12px;">BUILD 3 · DEPLOY &amp; SECURITY AUDIT · DUE NOV 23</div>
+    <table>
+      <tr><td>What shipped</td><td>
+        <ul>
+          <li>Live on GitHub Pages at this URL with two real groups playing (Sternies Lock In and Luke Maxxers). Classmates can open <a href="game.html">game.html</a> on a phone and go from character to check-in.</li>
+          <li>Whoop sync now also logs 10,000-step days from Whoop's daily cycles, deduped by cycle id and dated to the local wake-up day. Scheduled runs always sync, since GitHub started the cron 8 hours late one night and the time guard skipped it.</li>
+          <li>Security audit: live attack script (<code>scripts/security-test.mjs</code>), manual backup script, secret search of repo, history and live files, <a href="https://github.com/building-with-ai-f26/sc12439-LockIn/blob/main/SECURITY.md">SECURITY.md</a>, and migration 006 for the one finding.</li>
+          <li>Players can edit their character from the play screen; stage names became Rookie, Contender, Legend; all player-facing copy says "character".</li>
+        </ul>
+      </td></tr>
+      <tr><td>What I learned</td><td>
+        <ul>
+          <li>"Blocked" looks like success on Supabase: a filtered delete or update returns 200 with zero rows. The test has to count rows and re-read the victim's data afterwards, not just check the status code.</li>
+          <li>Open reads are a security finding even when writes are locked. The invite code is the only thing standing between a stranger and a group, and <code>using (true)</code> publishes it. Reads need scoping just like writes.</li>
+          <li>A scheduled job that checks the clock is a job that silently skips. Make it idempotent and run it whenever it fires.</li>
+        </ul>
+      </td></tr>
+      <tr><td>What broke</td><td>
+        <ul>
+          <li>The nightly sync skipped a night (cron late, guard too strict). Fixed by always syncing on schedule.</li>
+          <li>Whoop step counts need the <code>read:cycles</code> scope, which existing connections did not have, so the first step sync logged "reconnect Whoop" instead of steps. Everyone connected before 10 Nov has to connect again.</li>
+          <li>Agent mistakes that became <code>AGENTS.md</code> rules: harness screenshots taken from stale copies of the page, and a BSD sed pattern that matched nothing and exited 0.</li>
+        </ul>
+      </td></tr>
+      <tr><td>Spend</td><td>$0 of new spend: GitHub Pages and Actions, Supabase free tier, PostHog free tier, Whoop developer app. Coding agent on an existing plan.</td></tr>
+      <tr><td>Hours</td><td>About 3 hours: the Whoop step sync and cron fix on November 10, and the security audit and write-up on November 23.</td></tr>
     </table>
   </div>
 
